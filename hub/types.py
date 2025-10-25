@@ -1,5 +1,5 @@
 import torch
-from typing import Dict, Optional, Set, Tuple, Literal, TypedDict
+from typing import Dict,Tuple, Literal, TypedDict
 from dataclasses import dataclass
 from ..data.db_history import  ActionToken
 
@@ -13,7 +13,7 @@ class Coord:
 @dataclass
 class PlayerState:
     """Holds all runtime state for a connected player."""
-    user_id: str#add it so erase the user_id from the sessionstate
+    user_id: str
     chunk_id: str
     pos: Coord
     visible_cell: torch.Tensor
@@ -39,8 +39,8 @@ class ErrorPayload(TypedDict):
     message: str
 
 class IncomingMsg(TypedDict, total=False):
-    k: str
-    content: str
+    command : str
+    content : str 
    
 MOVE_TOKENS: Dict[Tuple[int, int], ActionToken] = {
     (0, 1): ActionToken.RIGHT,

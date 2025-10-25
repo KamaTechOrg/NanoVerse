@@ -1,3 +1,5 @@
+"""Utility functions for converting between chunk coordinates and chunk string IDs."""
+
 from typing import Tuple
 
 def chunk_id_from_coords(cx: int, cy: int) -> str:

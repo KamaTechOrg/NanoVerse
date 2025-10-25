@@ -1,8 +1,9 @@
+#V
 from typing import Dict, Any
 from datetime import datetime
 
-class Message:
-    """User-placed message ('treasure') bound to a specific cell in a chunk."""
+class ScrollMessage:
+    """Represents a scroll (message) left by a player at a specific cell and time."""
     def __init__(self, content: str, author: str, chunk_id: str, position: tuple[int, int]):
         self.content = content
         self.author = author
