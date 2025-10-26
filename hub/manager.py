@@ -9,21 +9,19 @@ from .sessions import SessionStore, PlayerSession
 from .world import WorldService
 from .movement import MovementService
 from .scrolls import ScrollService
-from .bot import BotService
 from .color import ColorService
 from ..core.settings import W, H
 
 logger = logging.getLogger(__name__)
 class Hub:
     """Main orchestration hub connecting all services.
-    Manages player connections, movements, scroll actions, color changes, and bot lifecycle."""
+    Manages player connections, movements, scroll actions, color changes."""
 
     def __init__(self, world: WorldService, movement: MovementService, 
-                 scrolls: ScrollService, bots: BotService, sessions: SessionStore, color_service:ColorService) -> None:
+                 scrolls: ScrollService, sessions: SessionStore, color_service:ColorService) -> None:
         self.world = world
         self.movement = movement
         self.scrolls = scrolls
-        self.bots = bots
         self.sessions = sessions
         self.color_service = color_service
         
@@ -36,23 +34,15 @@ class Hub:
             await ws.close(code=4001)
             logger.debug(f"reject ws: {reason}")
             return
-        
-        if self.bots.is_running(user_id):
-            bot_state = self.bots.stop(user_id)
-        else:
-            bot_state = None    
-        
+          
         user_sockets = self.sessions.sockets_for_user(user_id)
         if user_sockets:
             any_ws = next(iter(user_sockets))
             existing_session = self.sessions.get(any_ws)
             state = existing_session.state
         else:
-            if bot_state is not None:
-                state = bot_state
-            else:
-                chunk_id, spawn = await self.world.get_spawn_position(user_id)
-                state = await self.world.spawn_player(user_id, chunk_id,spawn)
+            chunk_id, spawn = await self.world.get_spawn_position(user_id)
+            state = await self.world.spawn_player(user_id, chunk_id,spawn)
         
         self.sessions.add(ws, PlayerSession( state=state))
         if not user_sockets:
@@ -61,14 +51,7 @@ class Hub:
 
     async def disconnect(self, ws: WebSocket) -> None:
          try:
-             sess = self.sessions.pop(ws)
-             if not sess:
-                 return
-
-             user_id = sess.state.user_id             
-             remaining = self.sessions.sockets_for_user(user_id)
-             if not remaining:   
-                    self.bots.start(user_id, sess.state)
+            self.sessions.pop(ws)
          except Exception as e:
              import traceback
              traceback.print_exc()

@@ -1,4 +1,3 @@
-#V
 import random
 import torch
 from .world import WorldService

@@ -13,7 +13,6 @@ from ..hub.world import WorldService
 from ..hub.sessions import SessionStore
 from ..hub.scrolls import ScrollService
 from ..hub.movement import MovementService
-from ..hub.bot import BotService
 from ..hub.color import ColorService
 from ..hub.ws_utils import WebSocketUtils
 
@@ -34,10 +33,8 @@ scroll_service = ScrollService(world_service, session_store, scrolls_db, chunk_d
 movement_service = MovementService(world_service, chunk_db, player_db)
 color_service = ColorService(world_service, scroll_service)
 
-bot_service = BotService(world_service,movement_service,scroll_service,color_service)
-
 hub = Hub(world_service, movement_service,
-          scroll_service,bot_service,session_store, color_service)
+          scroll_service ,session_store, color_service)
 
 
 async def _handle_move(ws: WebSocket, key) -> None:
