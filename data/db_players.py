@@ -1,8 +1,8 @@
 import math
 import sqlite3, time
 from typing import Optional, Tuple, List
-from ..core.settings import PLAYERS_DB_PATH
-from ..data import db_chunks
+from core.settings import PLAYERS_DB_PATH
+from data import db_chunks
 
 
 

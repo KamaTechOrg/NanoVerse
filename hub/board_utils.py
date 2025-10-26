@@ -1,8 +1,8 @@
 from __future__ import annotations
 import random
 import torch
-from ..core.settings import W, H, BIT_IS_PLAYER
-from ..core.bits import get_bit
+from core.settings import W, H, BIT_IS_PLAYER
+from core.bits import get_bit
 from .types import Coord, PlayerState, Direction
 
 class BoardUtils:

@@ -2,7 +2,7 @@ import sqlite3, time
 from typing import Optional, List
 import numpy as np
 import torch
-from ..core.settings import DB_PATH, W, H, DTYPE
+from core.settings import DB_PATH, W, H, DTYPE
 
 class ChunkDB:
     """Handles persistence of world chunks (boards) in SQLite.

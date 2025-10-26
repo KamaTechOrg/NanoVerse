@@ -6,9 +6,9 @@ import torch
 from .types import Direction, Coord, PlayerState
 from .board_utils import BoardUtils
 from .world import WorldService
-from ..data.db_chunks import ChunkDB
-from  ..data.db_players import PlayerDB
-from ..core.bits import compose_entry_cells
+from data.db_chunks import ChunkDB
+from data.db_players import PlayerDB
+from core.bits import compose_entry_cells
 @dataclass
 class MoveResult:
    moved: bool

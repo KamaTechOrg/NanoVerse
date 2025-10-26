@@ -10,7 +10,7 @@ from .world import WorldService
 from .movement import MovementService
 from .scrolls import ScrollService
 from .color import ColorService
-from ..core.settings import W, H
+from core.settings import W, H
 
 logger = logging.getLogger(__name__)
 class Hub:

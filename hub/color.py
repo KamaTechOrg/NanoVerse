@@ -2,10 +2,10 @@ import random
 import torch
 from .world import WorldService
 from .scrolls import ScrollService
-from ..core.settings import DTYPE, BIT_HAS_LINK
-from ..core.bits import make_color, get_bit,set_bit,with_player
+from core.settings import DTYPE, BIT_HAS_LINK
+from core.bits import make_color, get_bit,set_bit,with_player
 from .types import PlayerState
-from ..data.db_history import ActionToken
+from data.db_history import ActionToken
 
 class ColorService:
     """Handles player color changes and updates the board and database accordingly."""

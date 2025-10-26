@@ -1,7 +1,7 @@
 import torch
 from typing import Dict,Tuple, Literal, TypedDict
 from dataclasses import dataclass
-from ..data.db_history import  ActionToken
+from data.db_history import  ActionToken
 
 
 @dataclass(frozen=True)

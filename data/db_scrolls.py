@@ -2,8 +2,8 @@
 import json, os
 from json import JSONDecodeError
 from pathlib import Path
-from ..core.settings import SCROLLS_JSON_PATH
-from ..hub.scroll_message import ScrollMessage
+from core.settings import SCROLLS_JSON_PATH
+from hub.scroll_message import ScrollMessage
 
 
 class ScrollDB:

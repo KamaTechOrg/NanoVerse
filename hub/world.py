@@ -6,16 +6,16 @@ from typing import Dict, Tuple, Optional
 import torch
 from .types import Coord, PlayerState, Direction
 from .board_utils import BoardUtils
-from ..core.settings import W, H, DTYPE
-from ..core.bits import with_player, without_player, get_player_color_by_user_id
-from ..data.db_chunks import  ChunkDB
-from ..data.db_players import  PlayerDB
-from ..core.settings import BIT_HAS_LINK
+from core.settings import W, H, DTYPE
+from core.bits import with_player, without_player, get_player_color_by_user_id
+from data.db_chunks import  ChunkDB
+from data.db_players import  PlayerDB
+from core.settings import BIT_HAS_LINK
 import random
-from ..core.bits import make_color, set_bit, get_bit, with_player
-from ..core.settings import DTYPE, BIT_HAS_LINK
-from ..data.db_history import ActionToken, PlayerActionHistory
-from ..core.ids import chunk_id_from_coords, coords_from_chunk_id
+from core.bits import make_color, set_bit, get_bit, with_player
+from core.settings import DTYPE, BIT_HAS_LINK
+from data.db_history import ActionToken, PlayerActionHistory
+from core.ids import chunk_id_from_coords, coords_from_chunk_id
 
 logger = logging.getLogger(__name__)
 

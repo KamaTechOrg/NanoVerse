@@ -7,7 +7,7 @@ import numpy as np
 from datetime import datetime
 from pathlib import Path
 
-from ..core.settings import HISTORY_JSON_PATH
+from core.settings import HISTORY_JSON_PATH
 
 HISTORY_INDEX_PATH: Path = HISTORY_JSON_PATH
 HISTORY_LOG_PATH: Path = HISTORY_JSON_PATH.with_suffix(".jsonl")

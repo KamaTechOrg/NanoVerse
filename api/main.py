@@ -3,20 +3,20 @@ import logging
 from typing import Any, get_args
 from fastapi import FastAPI, WebSocket
 
-from ..data.db_players import PlayerDB
-from ..data.db_chunks import ChunkDB
-from ..data.db_history import PlayerActionHistory
-from ..data.db_scrolls import ScrollDB
-from ..hub.manager import Hub
-from ..hub.types import Direction, IncomingMsg
-from ..hub.world import WorldService
-from ..hub.sessions import SessionStore
-from ..hub.scrolls import ScrollService
-from ..hub.movement import MovementService
-from ..hub.color import ColorService
-from ..hub.ws_utils import WebSocketUtils
+from data.db_players import PlayerDB
+from data.db_chunks import ChunkDB
+from data.db_history import PlayerActionHistory
+from data.db_scrolls import ScrollDB
+from hub.manager import Hub
+from hub.types import Direction, IncomingMsg
+from hub.world import WorldService
+from hub.sessions import SessionStore
+from hub.scrolls import ScrollService
+from hub.movement import MovementService
+from hub.color import ColorService
+from hub.ws_utils import WebSocketUtils
 
-from ..core.settings import DATA_DIR
+from core.settings import DATA_DIR
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 logger = logging.getLogger(__name__)
