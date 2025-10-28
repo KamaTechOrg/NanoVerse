@@ -5,27 +5,28 @@ from ..services.presence import active_players
 
 router = APIRouter()
 
-@router.get("/active-players")
-async def get_active_players():
+# @router.get("/active-players")
+# async def get_active_players():
     
-    result = []
-    for p in players_data.get("players", []):
-        pid = p.get("id") or p.get("player_id") or p.get("name")
-        result.append({
-            **p,
-            "player_id": pid,
-            "is_connected": bool(active_players.get(pid)),
-        })
-    return result
+#     result = []
+#     for p in players_data.get("players", []):
+#         pid = p.get("id") or p.get("player_id") or p.get("name")
+#         result.append({
+#             **p,
+#             "player_id": pid,
+#             "is_connected": bool(active_players.get(pid)),
+#         })
+#     return result
 
-@router.get("/whoami")
-async def whoami(token: str):
+# @router.get("/whoami")
+# async def whoami(token: str):
     
-    pid = TOKEN_TO_PLAYER.get(token)
-    if not pid:
-        return {"ok": False, "reason": "invalid_token"}
-    return {"ok": True, "player_id": pid}
+#     pid = TOKEN_TO_PLAYER.get(token)
+#     if not pid:
+#         return {"ok": False, "reason": "invalid_token"}
+#     return {"ok": True, "player_id": pid}
 
+##??to get all the history messages
 @router.get("/history")
 async def get_history(token: str, with_id: str):
    
@@ -38,11 +39,11 @@ async def get_history(token: str, with_id: str):
     unread = unread_count_for(me, with_id)  
     return {"ok": True, "messages": msgs, "unread_now": unread, "changed": changed}
 
-@router.get("/unread-summary")
-async def unread_summary(token: str):
+# @router.get("/unread-summary")
+# async def unread_summary(token: str):
     
-    me = TOKEN_TO_PLAYER.get(token)
-    if not me:
-        return {"ok": False, "reason": "invalid_token"}
-    counts = unread_summary_for(me)
-    return {"ok": True, "counts": counts}
+#     me = TOKEN_TO_PLAYER.get(token)
+#     if not me:
+#         return {"ok": False, "reason": "invalid_token"}
+#     counts = unread_summary_for(me)
+#     return {"ok": True, "counts": counts}
