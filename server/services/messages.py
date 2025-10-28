@@ -102,3 +102,129 @@ def soft_delete_message_by_id(message_id: str, requester_id: str) -> Optional[di
                 save_json(CHATS_PATH, chats_data)
             return m
     return None
+from __future__ import annotations
+from typing import List, Optional, Dict
+
+# Storage layer: one SQLite DB file per players pair under project/Data/db/
+from server.storage.sqlite import chat_store
+
+
+# ---------------------------------------------------------------------
+# Minimal view formatter (keeps client-facing shape stable)
+# NOTE: The new DB schema is minimal and does not track read_by/deleted.
+# We add compatibility fields so the UI can keep working unchanged.
+# ---------------------------------------------------------------------
+def minimal_view(m: dict, viewer: Optional[str] = None) -> dict:
+    v = {
+        "id": m.get("id"),
+        "from": m.get("from"),
+        "to": m.get("to"),
+        "message": m.get("message", ""),
+        "timestamp": m.get("timestamp"),
+        # compatibility fields (not persisted in the new schema)
+        "read_by": m.get("read_by", []),
+        "deleted": m.get("deleted", False),
+    }
+    reaction = m.get("reaction", "none")
+    v["reaction"] = reaction
+    if viewer:
+        # historically there was a per-viewer reaction; we mirror the global one
+        v["my_reaction"] = reaction
+    # keep support if quoted_id is ever passed from callers
+    if m.get("quoted_id"):
+        v["quotedId"] = m["quoted_id"]
+    return v
+
+
+# ---------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------
+def get_message_by_id(mid: str) -> Optional[dict]:
+    """
+    Not supported with per-pair DBs without knowing the pair (a,b).
+    Kept for signature compatibility; returns None.
+    """
+    return None
+
+
+def append_message(fr: str, to: str, text: str, ts: Optional[str] = None, quoted_id: Optional[str] = None) -> dict:
+    """
+    Insert a new message into the dedicated DB file for (fr,to) and return a message dict.
+    """
+    msg = chat_store.insert_message(
+        sender_id=fr,
+        receiver_id=to,
+        content=text or "",
+        timestamp=ts,     # if None, chat_store will generate ISO timestamp
+        reaction="none",
+    )
+    # Cast numeric DB id to string for client compatibility
+    msg["id"] = str(msg.get("id"))
+    # add compatibility fields expected by the UI (not persisted)
+    msg.setdefault("read_by", [fr])
+    msg.setdefault("deleted", False)
+    if quoted_id:
+        msg["quoted_id"] = quoted_id
+    return msg
+
+
+def set_reaction(message_id: int | str, a: str, b: str, reaction: str) -> dict:
+    """
+    Update reaction ('like'|'dislike'|'none') for a message in the (a,b) DB.
+    """
+    mid = int(message_id)
+    upd = chat_store.update_reaction(message_id=mid, for_a=a, for_b=b, reaction=reaction)
+    # keep id as string for client consistency
+    upd["id"] = str(upd["id"])
+    return upd
+
+
+def history_between(a: str, b: str, viewer: Optional[str] = None) -> List[dict]:
+    """
+    Return chat history for (a,b) from their dedicated DB as a list of minimal-view messages.
+    """
+    rows = chat_store.fetch_history(a, b, limit=1000)  # tune limit if needed
+    out: List[dict] = []
+    for r in rows:
+        # normalize id to string for client compatibility
+        r["id"] = str(r.get("id"))
+        # add compatibility fields (not stored in DB)
+        r.setdefault("read_by", [])
+        r.setdefault("deleted", False)
+        out.append(minimal_view(r, viewer))
+    return out
+
+
+# ---------------------------------------------------------------------
+# Unread/read markers (no-op with the minimal schema)
+# ---------------------------------------------------------------------
+def unread_count_for(me: str, from_id: str) -> int:
+    """
+    Not tracked in the minimal schema; return 0 to keep UI logic stable.
+    """
+    return 0
+
+
+def mark_read_pair(me: str, with_id: str) -> int:
+    """
+    Not tracked in the minimal schema; return 0 (no updates).
+    """
+    return 0
+
+
+def unread_summary_for(me: str) -> Dict[str, int]:
+    """
+    Not tracked in the minimal schema; return empty summary.
+    """
+    return {}
+
+
+# ---------------------------------------------------------------------
+# Soft delete (not supported in the minimal schema)
+# ---------------------------------------------------------------------
+def soft_delete_message_by_id(message_id: str, requester_id: str) -> Optional[dict]:
+    """
+    Soft delete is not supported by the given schema (no 'deleted'/'updated_at' columns).
+    Return None to indicate not supported.
+    """
+    return None
