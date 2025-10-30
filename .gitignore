@@ -1,22 +1,62 @@
-# Ignore Python cache files and folders
-__pycache__/
-*.py[cod]
-*$py.class
+# =========================================
+# === General Python ignores ===
+# =========================================
 
-# Ignore virtual environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.pid
+
+# =========================================
+# === VS Code settings ===
+# =========================================
+.vscode/
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.vscode/chrome-debug-profile/
+.vscode/chrome-debug-profile/**
+
+# =========================================
+# === Virtual environments ===
+# =========================================
 .venv/
 env/
 venv/
+# =========================================
+# === Node / JS frontend ===
+# =========================================
+node_modules/
+dist/
+build/
 
-# Ignore IDE settings
-.vscode/
-.idea/
+# =========================================
+# === Local databases (root only) ===
+# =========================================
+/data/
+/data/**
+/data/*.db
+/data/*.db-shm
+/data/*.db-wal
+/data/history.json
+/data/players.db
+/data/world.db
 
-# Ignore OS-specific files
+# =========================================
+# === OS / Temp files ===
+# =========================================
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Ignore logs and temporary data
-*.log
-*.tmp
-*.bak
+# =========================================
+# === Ignore local model/training folders ===
+# =========================================
+bot_gru/
+
+# =========================================
+# === Explicitly track service data folder ===
+# =========================================
+!services/game2/data/
