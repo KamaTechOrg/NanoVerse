@@ -8,11 +8,12 @@ import GamePage from "./components/VoxelGrid";
 import TopBar from "./components/TopBar";
 import { WebSocketProvider } from "./context/WebSocketProvider";
 
+// ---------------------- AUTH PAGE ----------------------
 function AuthPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  if (authStorage.isAuthenticated()) return <Navigate to="/game" replace />;
+  if (authStorage.isAuthenticated()) return <Navigate to="/" replace />;
 
   const initialTab: "login" | "register" =
     location.pathname.startsWith("/register") ? "register" : "login";
@@ -29,14 +30,25 @@ function AuthPage() {
 
       <div className="flex gap-2 mb-6">
         <button
-          className={`px-3 py-1.5 rounded ${tab === "login" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-          onClick={() => { setTab("login"); navigate("/login", { replace: true }); }}
+          className={`px-3 py-1.5 rounded ${
+            tab === "login" ? "bg-blue-600 text-white" : "bg-gray-200"
+          }`}
+          onClick={() => {
+            setTab("login");
+            navigate("/login", { replace: true });
+          }}
         >
           Sign In
         </button>
+
         <button
-          className={`px-3 py-1.5 rounded ${tab === "register" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-          onClick={() => { setTab("register"); navigate("/register", { replace: true }); }}
+          className={`px-3 py-1.5 rounded ${
+            tab === "register" ? "bg-blue-600 text-white" : "bg-gray-200"
+          }`}
+          onClick={() => {
+            setTab("register");
+            navigate("/register", { replace: true });
+          }}
         >
           Create Account
         </button>
@@ -44,13 +56,10 @@ function AuthPage() {
 
       {tab === "login" ? (
         <LoginForm
-          onSuccess={(user, token) => {
-            console.log("[App] Login success:", user, token);
-          }}
           onDone={(user, token) => {
             localStorage.setItem("token", token);
             localStorage.setItem("user", user);
-            navigate("/game");
+            navigate("/"); // ✅ now go to "/" instead of "/game"
           }}
         />
       ) : (
@@ -58,7 +67,7 @@ function AuthPage() {
           onDone={(user, token) => {
             localStorage.setItem("token", token);
             localStorage.setItem("user", user);
-            navigate("/game");
+            navigate("/"); // ✅ now go to "/"
           }}
         />
       )}
@@ -66,36 +75,41 @@ function AuthPage() {
   );
 }
 
+// ---------------------- PRIVATE ROUTE ----------------------
 function PrivateRoute({ children }: { children: JSX.Element }) {
   const isAuthed = authStorage.isAuthenticated();
   return isAuthed ? children : <Navigate to="/login" replace />;
 }
 
+// ---------------------- MAIN APP ----------------------
 export default function App() {
   const isAuthed = authStorage.isAuthenticated();
 
   return (
     <BrowserRouter>
-      <WebSocketProvider>
-        <TopBar />
-        <Routes>
-          <Route path="/" element={<Navigate to={isAuthed ? "/game" : "/login"} replace />} />
-
-          <Route path="/login" element={<AuthPage />} />
-          <Route path="/register" element={<AuthPage />} />
-
-          <Route
-            path="/game"
-            element={
+      <TopBar />
+      <Routes>
+        {/* ✅ Root "/" is now the game page if logged in */}
+        <Route
+          path="/"
+          element={
+            isAuthed ? (
               <PrivateRoute>
-                <GamePage />
+                <WebSocketProvider>
+                  <GamePage />
+                </WebSocketProvider>
               </PrivateRoute>
-            }
-          />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </WebSocketProvider>
+        <Route path="/login" element={<AuthPage />} />
+        <Route path="/register" element={<AuthPage />} />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </BrowserRouter>
   );
 }

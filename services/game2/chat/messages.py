@@ -3,6 +3,7 @@ from typing import List, Optional
 from datetime import datetime
 
 from ..data.db_chat import ChatDB
+
 class MessageService:
     """
     Handles all message storage and retrieval logic.
@@ -13,6 +14,34 @@ class MessageService:
         self.db = db
 
 
+    # def append_message(
+    #     self,
+    #     sender_id: str,
+    #     receiver_id: str,
+    #     text: str,
+    #     timestamp: Optional[str] = None,
+    #     quoted_id: Optional[str] = None,
+    # ) -> dict:
+    #     timestamp = timestamp or datetime.utcnow().isoformat() + "Z"
+    #     self.db.add_message(
+    #         sender_id=sender_id,
+    #         receiver_id=receiver_id,
+    #         content=text,
+    #         timestamp=timestamp,
+    #         reaction="none"
+    #     )
+
+    #     msg_id = f"{sender_id}_{receiver_id}_{timestamp}"
+
+    #     return {
+    #         "id": msg_id,
+    #         "from": sender_id,
+    #         "to": receiver_id,
+    #         "message": text,
+    #         "timestamp": timestamp,
+    #         "reaction": "none",
+    #     }
+ 
     def append_message(
         self,
         sender_id: str,
@@ -22,18 +51,16 @@ class MessageService:
         quoted_id: Optional[str] = None,
     ) -> dict:
         timestamp = timestamp or datetime.utcnow().isoformat() + "Z"
-        self.db.add_message(
+        saved = self.db.add_message(
             sender_id=sender_id,
             receiver_id=receiver_id,
             content=text,
             timestamp=timestamp,
             reaction="none"
         )
-
-        msg_id = f"{sender_id}_{receiver_id}_{timestamp}"
-
+        # ✅ use the real DB id
         return {
-            "id": msg_id,
+            "id": saved["id"],
             "from": sender_id,
             "to": receiver_id,
             "message": text,
@@ -41,17 +68,13 @@ class MessageService:
             "reaction": "none",
         }
 
-   
-   
     def history_between(self, a: str, b: str, viewer: Optional[str] = None) -> List[dict]:
         msgs = self.db.get_messages_between(a, b)
         return [self._minimal_view(m, viewer) for m in msgs]
 
 
-
     def get_message_by_id(self, msg_id: str) -> Optional[dict]:
         return self.db.get_message_by_id(msg_id)
-
 
 
     def update_reaction(self, msg_id: int, reaction: str) -> None:

@@ -11,30 +11,28 @@ const JWT_SECRET = process.env.AUTH_JWT_SECRET || 'CHANGE_ME_123456789';
 
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://127.0.0.1:7001';
 const GAME_SERVICE_URL = process.env.GAME_SERVICE_URL || 'http://127.0.0.1:7002';
-const FRONTEND_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
-const CHAT_SERVICE_URL = process.env.CHAT_SERVICE_URL || 'http://127.0.0.1:8000';
+const FRONTEND_ORIGIN = (process.env.CORS_ORIGIN || 'http://localhost:5173').split(',');
 
 const app = express();
 
-app.use(cors({
-  origin: FRONTEND_ORIGIN,
-  credentials: true,
-  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// ---------------------- CORS ----------------------
+app.use(
+  cors({
+    origin: FRONTEND_ORIGIN,
+    credentials: true,
+    methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
+app.options('*', cors());
 
-app.options('*', cors({
-  origin: FRONTEND_ORIGIN,
-  credentials: true,
-  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
+// ---------------------- LOGGING ----------------------
 app.use((req, res, next) => {
   console.log('[EDGE][INCOMING]', req.method, req.url, 'origin=', req.headers.origin, 'host=', req.headers.host);
   next();
 });
 
+// ---------------------- TOKEN HELPERS ----------------------
 function getTokenFromReq(req) {
   try {
     const hdr = (req.headers && (req.headers.authorization || req.headers.Authorization)) || '';
@@ -45,12 +43,10 @@ function getTokenFromReq(req) {
     if (req.url) {
       const full = req.url.startsWith('http') ? req.url : `http://localhost${req.url}`;
       const u = new URL(full);
-      console.log("u--   ", u);
-
       return u.searchParams.get('token') || null;
     }
   } catch {
-    console.log("an error in get token--");
+    console.log('error extracting token');
   }
   return null;
 }
@@ -71,15 +67,14 @@ function requireJWT(req, res, next) {
   }
 }
 
-// --------------------- /auth proxy ---------------------
+// ---------------------- /auth proxy ----------------------
 const authProxy = createProxyMiddleware({
   target: AUTH_SERVICE_URL,
   pathRewrite: { '^/auth': '' },
   changeOrigin: true,
   ws: false,
   logLevel: 'debug',
-  onProxyReq: (proxyReq, req, res) => {
-    console.log("--I am here")
+  onProxyReq: (proxyReq, req) => {
     if (req.body && Object.keys(req.body).length) {
       const bodyData = JSON.stringify(req.body);
       proxyReq.setHeader('Content-Type', 'application/json');
@@ -94,51 +89,25 @@ const authProxy = createProxyMiddleware({
       res.writeHead && res.writeHead(502);
       res.end('Bad gateway');
     }
-  }
+  },
 });
 
 app.use('/auth', authProxy);
 
-
-// --------------------- /chat proxy ---------------------
-const chatProxy = createProxyMiddleware({
-  target: CHAT_SERVICE_URL,
-  pathRewrite: { '^/chat': '/' },
-  changeOrigin: true,
-  ws: true,
-  logLevel: 'debug',
-  onProxyReqWs: (proxyReq, req, socket) => {
-    try {
-      const full = req.url.startsWith('http')
-        ? req.url
-        : `http://${req.headers.host || 'localhost'}${req.url}`;
-      const u = new URL(full);
-      const token = u.searchParams.get('token');
-      if (token) proxyReq.setHeader('Authorization', `Bearer ${token}`);
-    } catch (err) {
-      console.log('[EDGE][CHAT][WS] error:', err.message);
-    }
-  },
-});
-
-app.use('/chat', chatProxy);
-//end of the chat
-
+// ---------------------- GAME proxy ----------------------
 const gameProxy = createProxyMiddleware({
   target: GAME_SERVICE_URL,
-  pathRewrite: { '^/game': '/' },
+  pathRewrite: { '^/': '/' }, // everything (/) → game service
   changeOrigin: true,
   ws: true,
   logLevel: 'debug',
   onProxyReqWs: (proxyReq, req, socket) => {
     try {
-      // נחלץ token מה-URL של ה-upgrade (ws://.../game/ws?token=XXX)
       const full = req.url.startsWith('http')
         ? req.url
         : `http://${req.headers.host || 'localhost'}${req.url}`;
       const u = new URL(full);
-      const token =
-        u.searchParams.get('token') || getTokenFromReq(req); // fallback לכותרת Authorization אם יש
+      const token = u.searchParams.get('token') || getTokenFromReq(req);
 
       console.log('[EDGE][WS] upgrade url=', req.url, 'token?', !!token);
 
@@ -148,80 +117,61 @@ const gameProxy = createProxyMiddleware({
         return;
       }
 
-      // אימות טוקן ב-edge (אותה סוד/אלגוריתם כמו ב-auth/game)
+      // verify token
       const payload = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
-      console.log('[EDGE][WS] token OK: sub=', payload?.sub, 'username=', payload?.username);
+      console.log('[EDGE][WS] token OK:', payload?.sub || payload?.username);
 
-      // נעביר ל-upstream כ-Authorization: Bearer ...
       proxyReq.setHeader('Authorization', `Bearer ${token}`);
 
-      // יישור Host header ליעד (להימנע מ-Host mismatch)
+      // fix host header for upstream
       const targetHost = new URL(GAME_SERVICE_URL).host;
       proxyReq.setHeader('host', targetHost);
     } catch (err) {
       console.log('[EDGE][WS] token verify failed:', err?.message || String(err));
-      try { socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n'); } catch { }
-      try { socket.destroy(); } catch { }
+      try {
+        socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+      } catch {}
+      try {
+        socket.destroy();
+      } catch {}
     }
   },
 });
 
-
-// HTTP requests to /game require JWT
-app.use('/game', (req, res, next) => {
+// All HTTP requests to game → require JWT
+app.use('/', (req, res, next) => {
   const upgrade = (req.headers && req.headers.upgrade) || '';
   if (typeof upgrade === 'string' && upgrade.toLowerCase() === 'websocket') return next();
   requireJWT(req, res, next);
 }, gameProxy);
 
-// --------------------- health check ---------------------
+// ---------------------- HEALTH CHECK ----------------------
 app.get('/health', (_req, res) => res.json({ ok: true, service: 'edge' }));
 
-// --------------------- fallback ---------------------
+// ---------------------- FALLBACK ----------------------
 app.use((_req, res) => {
   res.status(404).json({ ok: false, error: 'not_found' });
 });
 
-// --------------------- HTTP server + WS upgrade ---------------------
+// ---------------------- HTTP SERVER + WS UPGRADE ----------------------
 const server = http.createServer(app);
 
 server.on('upgrade', (req, socket, head) => {
   try {
-    if (req.url && req.url.startsWith('/game')) {
-      req.url = req.url.replace(/^\/game/, '') || '/';
-      try {
-        const token = getTokenFromReq(req);
-        // Authorization added automatically in onProxyReqWs
-      } catch { }
+    // proxy WS connections at /ws → game service
+    if (req.url && req.url.startsWith('/ws')) {
+      const token = getTokenFromReq(req);
       if (typeof gameProxy.upgrade === 'function') {
         return gameProxy.upgrade(req, socket, head);
       }
       socket.destroy();
       return;
     }
-    if (req.url && req.url.startsWith('/chat')) {
-      console.log("at the chat upgrade");
-      
-      req.url = req.url.replace(/^\/chat/, '') || '/'
-      try {
-        const token = getTokenFromReq(req)
-        if (!token) {
-          socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
-          socket.destroy();
-          return;
-        }
-      }
-      catch{}
-
-      if(typeof chatProxy.upgrade == "function"){
-        return chatProxy.upgrade(req, socket, head)
-      }
-      socket.destroy()
-      return
-    }
     socket.destroy();
   } catch {
-    try { socket.destroy(); } catch { }
+    try {
+      socket.destroy();
+    } catch {}
   }
 });
 
@@ -230,6 +180,3 @@ server.listen(PORT, () => {
   console.log(`[edge] auth → ${AUTH_SERVICE_URL}`);
   console.log(`[edge] game → ${GAME_SERVICE_URL}`);
 });
-
-
-

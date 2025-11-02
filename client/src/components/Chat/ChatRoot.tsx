@@ -53,8 +53,14 @@ const ChatRoot: React.FC<ChatRootProps> = ({
     let bestD = Infinity;
     for (const p of playersInChunk) {
       if (p.id === me.id) continue;
-      const d = Math.hypot((p.row ?? 0) - (me.row ?? 0), (p.col ?? 0) - (me.col ?? 0));
-      if (d < bestD) { bestD = d; best = p; }
+      const d = Math.hypot(
+        (p.row ?? 0) - (me.row ?? 0),
+        (p.col ?? 0) - (me.col ?? 0)
+      );
+      if (d < bestD) {
+        bestD = d;
+        best = p;
+      }
     }
     return best;
   }, [me, playersInChunk]);
@@ -82,6 +88,22 @@ const ChatRoot: React.FC<ChatRootProps> = ({
     }
   }, [nearestLocal, selectedPlayer, selectPlayer]);
 
+  // keep local copy so we can clear on "clearChat"
+  const [localMessages, setLocalMessages] = useState(messages);
+  useEffect(() => setLocalMessages(messages), [messages]);
+
+  useEffect(() => {
+    const handleClear = () => {
+      console.log(
+        "[ChatRoot] clearing messages because player is alone in chunk"
+      );
+      setLocalMessages([]);
+      selectPlayer(null as any);
+    };
+    window.addEventListener("clearChat", handleClear);
+    return () => window.removeEventListener("clearChat", handleClear);
+  }, [selectPlayer]);
+
   const [showCustomization, setShowCustomization] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<ChatTheme>({
     name: "Cyber Blue",
@@ -93,7 +115,7 @@ const ChatRoot: React.FC<ChatRootProps> = ({
     textColor: "#f8fafc",
   });
 
-  // ברירת מחדל: סגור – כדי שהצ’אט יראה “אמיתי” (רק ההודעות)
+  // sidebar/modal with players list (closed by default to feel like “real chat”)
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -101,7 +123,7 @@ const ChatRoot: React.FC<ChatRootProps> = ({
       className="relative flex h-full w-full overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"
       style={{ color: currentTheme.textColor }}
     >
-      {/* Sidebar: לא מרנדרים בכלל כשהוא סגור, כדי שלא יתפוס מקום */}
+      {/* Sidebar: render only when open (mobile modal + desktop panel) */}
       {sidebarOpen && (
         <>
           <div className="fixed lg:relative inset-y-0 left-0 z-30 w-64 sm:w-72 lg:w-80">
@@ -116,7 +138,7 @@ const ChatRoot: React.FC<ChatRootProps> = ({
               onToggle={() => setSidebarOpen(false)}
             />
           </div>
-          {/* כיבוי במובייל בלחיצה בחוץ */}
+          {/* backdrop for mobile */}
           <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-20 lg:hidden"
             onClick={() => setSidebarOpen(false)}
@@ -124,11 +146,11 @@ const ChatRoot: React.FC<ChatRootProps> = ({
         </>
       )}
 
-      {/* אזור ההודעות – תופס 100% תמיד */}
+      {/* Messages area */}
       <div className="flex-1 h-full flex flex-col min-w-0">
         <div className="px-3 sm:px-4 py-3 border-b border-slate-700 backdrop-blur-sm bg-slate-800 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            {/* כפתור People לפתיחת רשימת השחקנים כמודאל/סיידבר */}
+            {/* People button toggles list above chat only */}
             <button
               onClick={() => setSidebarOpen((v) => !v)}
               className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors shrink-0"
@@ -161,7 +183,7 @@ const ChatRoot: React.FC<ChatRootProps> = ({
 
         <div className="flex-1 min-h-0">
           <ChatInterface
-            messages={messages}
+            messages={localMessages}
             selectedPlayer={selectedPlayer}
             currentPlayerId={meId}
             onSendMessage={(text, quoted) => {
@@ -176,7 +198,9 @@ const ChatRoot: React.FC<ChatRootProps> = ({
               }
               sendMessage(text, quoted, { chunkId });
             }}
-            onReactMessage={(messageId, reaction) => reactToMessage(messageId, reaction)}
+            onReactMessage={(messageId, reaction) =>
+              reactToMessage(messageId, reaction)
+            }
             onDeleteMessage={deleteMessage}
             playersInChunk={playersInChunk as any}
             nearestPlayerId={nearestPlayerId}

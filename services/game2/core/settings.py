@@ -15,17 +15,18 @@ BIT_R1_IDX, BIT_G1_IDX, BIT_B1_IDX = 5, 6, 7
 
 COLOR_BITS = {
     "r": (BIT_R0_IDX, BIT_R1_IDX),
-    "g": (BIT_G0_IDX, BIT_G1_IDX),
+    "g": (BIT_G0_IDX, BIT_G1_IDX),   
     "b": (BIT_B0_IDX, BIT_B1_IDX),
 }
 
 # Data paths
 DATA_DIR = Path("data")
-DB_PATH = DATA_DIR / "world.db"
+DB_PATH = DATA_DIR / "world.db"#??can remove it, not in use
 PLAYERS_DB_PATH = DATA_DIR / "players.db"
 SCROLLS_JSON_PATH = DATA_DIR / "message.json"##??change it to scroll_message
 HISTORY_JSON_PATH  = DATA_DIR / "history.json"
 
+CHAT_DB_PATH = DATA_DIR / "chat.db"
 
 
 CMD_UP = "up"

@@ -28,7 +28,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    // אין צורך ב-historyApiFallback - ב-Vite זה כבר SPA כברירת מחדל
+    allowedHosts: ['orensch2.myvnc.com'],
     proxy: {
       // REST של התחברות/הרשמה עובר דרך ה-edge
       "/auth": {

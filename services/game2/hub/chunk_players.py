@@ -1,111 +1,128 @@
 from collections import defaultdict
-from typing import Dict, List
+from typing import Dict, List, Optional
 import threading
-from ..data.db_chunk_players import ChunkPlayersDB
-##?? to fix that he will not every time will save the data to the db
+from ..data.db_players import PlayerDB
+
 
 class ChunkPlayers:
     """
-    Efficient in-memory + persistent mapping of chunk_id -> players (with row, col).
-    Keeps everything in RAM and syncs with the DB for persistence.
+    Handles all players' positions in memory, synchronized with PlayerDB.
+    - Keeps a live map of chunk_id → player positions.
+    - Loads chunk data automatically from DB when needed.
     """
 
-    def __init__(self):
-        self.db = ChunkPlayersDB()
-        # cache: {chunk_id: {user_id: {"row": int, "col": int}}}
-        self._cache: Dict[str, Dict[str, Dict[str, int]]] = defaultdict(dict)
+    def __init__(self, player_db: PlayerDB):
+        self.db = player_db
+        # {chunk_id: {player_id: {"row": int, "col": int}}}
+        self.chunk_player_map: Dict[str, Dict[str, Dict[str, int]]] = defaultdict(dict)
         self._lock = threading.Lock()
-        self._load_from_db()
+        self._load_all_from_db()
 
-    def _load_from_db(self):
-        print("[ChunkPlayers] Loading data from DB...")
-        cur = self.db.conn.execute("SELECT chunk_id, user_id, row, col FROM chunk_players")
+
+    def _load_all_from_db(self):
+        """Load all player positions from DB at startup."""
+        print("[ChunkPlayers] Loading all players from DB...")
+        cur = self.db.conn.execute("SELECT chunk_id, user_id, row, col FROM players")
         rows = cur.fetchall()
         for chunk_id, user_id, row, col in rows:
-            self._cache[chunk_id][user_id] = {"row": row, "col": col}
-        print(f"[ChunkPlayers] Loaded {len(rows)} players into memory.")
+            self.chunk_player_map[chunk_id][user_id] = {"row": row, "col": col}
+            
 
-    def _save(self, chunk_id: str, user_id: str, row: int, col: int):
-        self.db.add_player(chunk_id, user_id, row, col)
+    def _load_chunk_from_db(self, chunk_id: str):
+        """Load all players of a given chunk into memory (if not yet loaded)."""
+        cur = self.db.conn.execute(
+            "SELECT user_id, row, col FROM players WHERE chunk_id=?",
+            (chunk_id,),
+        )
+        rows = cur.fetchall()
+        for user_id, row, col in rows:
+            self.chunk_player_map[chunk_id][user_id] = {"row": row, "col": col}
+        if rows:
+            print(f"[ChunkPlayers] Loaded {len(rows)} players from chunk {chunk_id}.")
 
-    def _delete(self, chunk_id: str, user_id: str):
-        self.db.remove_player(chunk_id, user_id)
 
-   
-    def add_player(self, chunk_id: str, user_id: str, row: int, col: int):
-        """Add or update player position in chunk."""
+    def add_player(self, chunk_id: str, player_id: str, row: int, col: int):
+        """
+        Add a player to the chunk.
+        Automatically ensures the chunk's other players are loaded from DB.
+        """
         with self._lock:
-            self._cache[chunk_id][user_id] = {"row": row, "col": col}
-            self._save(chunk_id, user_id, row, col)
-            print(f"[ChunkPlayers] Added player {user_id} at ({row},{col}) in {chunk_id}")
+            if chunk_id not in self.chunk_player_map:
+                self._load_chunk_from_db(chunk_id)
 
-    def update_position(self, chunk_id: str, user_id: str, row: int, col: int):
-        """Update player's position inside the same chunk."""
+            self.chunk_player_map[chunk_id][player_id] = {"row": row, "col": col}
+            self.db.upsert(player_id, chunk_id, row, col)
+
+
+    def update_player_position(self, chunk_id: str, player_id: str, row: int, col: int):
+        """Update player's coordinates inside a chunk."""
+        with self._lock:   
+            # if player_id in self.chunk_player_map.get(chunk_id, {}):
+            if chunk_id not in self.chunk_player_map:
+                self._load_all_from_db(chunk_id)
+            self.chunk_player_map[chunk_id][player_id] = {"row": row, "col": col} #??can I take it out??
+            self.db.upsert(player_id, chunk_id, row, col)
+                
+
+    def move_player_to_chunk(self, old_chunk_id: str, new_chunk_id: str,
+                             player_id: str, row: int, col: int):
+        """
+        Move player from one chunk to another.
+        Automatically loads new chunk players from DB.
+        """
         with self._lock:
-            if user_id in self._cache.get(chunk_id, {}):
-                self._cache[chunk_id][user_id] = {"row": row, "col": col}
-                self._save(chunk_id, user_id, row, col)
-                print(f"[ChunkPlayers] Updated player {user_id} position -> ({row},{col}) in {chunk_id}")
+            if new_chunk_id not in self.chunk_player_map:
+                self._load_chunk_from_db(new_chunk_id)
 
-    def remove_player(self, chunk_id: str, user_id: str):
-        """Remove player from chunk."""
+            if player_id in self.chunk_player_map.get(old_chunk_id, {}):
+                del self.chunk_player_map[old_chunk_id][player_id]
+                if not self.chunk_player_map[old_chunk_id]:
+                    del self.chunk_player_map[old_chunk_id]
+
+            self.chunk_player_map[new_chunk_id][player_id] = {"row": row, "col": col}
+            self.db.upsert(player_id, new_chunk_id, row, col)
+
+
+    def remove_player(self, player_id: str):
+        """Remove player completely (disconnect)."""
         with self._lock:
-            if user_id in self._cache.get(chunk_id, {}):
-                del self._cache[chunk_id][user_id]
-                if not self._cache[chunk_id]:
-                    del self._cache[chunk_id]
-                self._delete(chunk_id, user_id)
-                print(f"[ChunkPlayers] Removed player {user_id} from {chunk_id}")
+            for chunk_id in list(self.chunk_player_map.keys()):
+                if player_id in self.chunk_player_map[chunk_id]:
+                    del self.chunk_player_map[chunk_id][player_id]
+                    if not self.chunk_player_map[chunk_id]:
+                        del self.chunk_player_map[chunk_id]
+            self.db.remove_player(player_id)
 
-    def move_player(self, old_chunk: str, new_chunk: str, user_id: str, row: int, col: int):
-        """Move player between chunks (with new position)."""
-        if old_chunk == new_chunk:
-            return self.update_position(new_chunk, user_id, row, col)
 
-        with self._lock:
-            if user_id in self._cache.get(old_chunk, {}):
-                del self._cache[old_chunk][user_id]
-                self._delete(old_chunk, user_id)
-                if not self._cache[old_chunk]:
-                    del self._cache[old_chunk]
-
-            self._cache[new_chunk][user_id] = {"row": row, "col": col}
-            self._save(new_chunk, user_id, row, col)
-            print(f"[ChunkPlayers] Moved {user_id} from {old_chunk} -> {new_chunk} ({row},{col})")
+    def get_player_position(self, player_id: str) -> Optional[Dict[str, int]]:
+        """Return the player's current position as {'chunk_id', 'row', 'col'}."""
+        for chunk_id, players in self.chunk_player_map.items():
+            if player_id in players:
+                pos = players[player_id]
+                return {"chunk_id": chunk_id, "row": pos["row"], "col": pos["col"]}
+        return None
 
     def get_players_in_chunk(self, chunk_id: str) -> List[Dict[str, int]]:
-        """Return list of players with positions in a chunk."""
+        """List all players in the given chunk."""
+        if chunk_id not in self.chunk_player_map:
+            self._load_chunk_from_db(chunk_id)
         return [
-            {"id": uid, "row": info["row"], "col": info["col"]}
-            for uid, info in self._cache.get(chunk_id, {}).items()
+            {"id": uid, "row": p["row"], "col": p["col"]}
+            for uid, p in self.chunk_player_map.get(chunk_id, {}).items()
         ]
 
-    def get_position(self, chunk_id: str, user_id: str):
-        """Return player's (row, col) position."""
-        return self._cache.get(chunk_id, {}).get(user_id)
+    def is_cell_free(self, chunk_id: str, row: int, col: int) -> bool:
+        """Check if the given cell is free (auto-loads chunk from DB if missing)."""
+        if chunk_id not in self.chunk_player_map:
+            self._load_chunk_from_db(chunk_id)
 
-    def remove_player_from_all(self, user_id: str):
-        """Remove a player from all chunks (disconnect)."""
-        with self._lock:
-            for chunk_id in list(self._cache.keys()):
-                if user_id in self._cache[chunk_id]:
-                    del self._cache[chunk_id][user_id]
-                    self._delete(chunk_id, user_id)
-                    if not self._cache[chunk_id]:
-                        del self._cache[chunk_id]
-            print(f"[ChunkPlayers] Cleared player {user_id} from all chunks")
-
-    def close(self):
-        self.db.close()
-
-    def is_cell_free(self, chunk_id: str, row, col) -> None:
-        users = self._cache[chunk_id]
-        print(users)
-        for key in users:
-            print("the row and col",key)
-            print("-----",users[key]["row"])
-            if users[key]["row"] == row and users[key]["col"]==col:
+        players_in_chunk = self.chunk_player_map.get(chunk_id, {})
+        for pos in players_in_chunk.values():
+            if pos["row"] == row and pos["col"] == col:
                 return False
         return True
-            
-            
+
+
+    def close(self):
+        """Close DB connection."""
+        self.db.close()

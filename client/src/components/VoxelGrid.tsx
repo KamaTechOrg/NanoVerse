@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { Wifi, WifiOff, Users, Gamepad2, MessageCircle, X, HelpCircle } from "lucide-react";
 import { authStorage } from "../utils/auth";
@@ -99,6 +100,12 @@ const VoxelGrid: React.FC = () => {
         if (newChunkId && newChunkId !== sessionStorage.getItem("current_chunk_id")) {
           sessionStorage.setItem("current_chunk_id", newChunkId);
           window.dispatchEvent(new Event("chunkChanged"));
+        }
+
+        // ✅ NEW: if the player is alone in the chunk → clear chat messages
+        if (newPlayers.length <= 1) {
+          console.log("[VoxelGrid] Player alone in chunk → clearing chat");
+          window.dispatchEvent(new Event("clearChat"));
         }
       }
 
