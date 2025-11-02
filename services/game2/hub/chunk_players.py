@@ -56,10 +56,12 @@ class ChunkPlayers:
 
     def update_player_position(self, chunk_id: str, player_id: str, row: int, col: int):
         """Update player's coordinates inside a chunk."""
-        with self._lock:
-            if player_id in self.chunk_player_map.get(chunk_id, {}):
-                self.chunk_player_map[chunk_id][player_id] = {"row": row, "col": col} #??can I take it out??
-                self.db.upsert(player_id, chunk_id, row, col)
+        with self._lock:   
+            # if player_id in self.chunk_player_map.get(chunk_id, {}):
+            if chunk_id not in self.chunk_player_map:
+                self._load_all_from_db(chunk_id)
+            self.chunk_player_map[chunk_id][player_id] = {"row": row, "col": col} #??can I take it out??
+            self.db.upsert(player_id, chunk_id, row, col)
                 
 
     def move_player_to_chunk(self, old_chunk_id: str, new_chunk_id: str,

@@ -12,9 +12,9 @@ function backendHost(): string {
   return h === "localhost" || h === "127.0.0.1" ? "127.0.0.1" : h;
 }
 
-// function wsUrl(): string {
-//   const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-//   return `${proto}//${backendHost()}:8080/game/ws`;
+function wsUrl(): string {
+  const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${proto}//${backendHost()}:8080/game/ws`;
 /**
  * Decide backend host:
  * - in dev: ws://127.0.0.1:8080/ws
@@ -26,10 +26,10 @@ function backendHost(): string {
 // }
 
 //??to put it ??------------------------------------
-function wsUrl(): string {
-  const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-  const host = window.location.host; // This includes the port if specified
-  return `${proto}//${host}/game/ws`;
+// function wsUrl(): string {
+//   const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+//   const host = window.location.host; // This includes the port if specified
+  // return `${proto}//${host}/game/ws`;
 }
 
 let singletonSocket: WebSocket | null = null;
