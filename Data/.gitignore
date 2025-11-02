@@ -1,0 +1,25 @@
+@'
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Node (client)
+project/node_modules/
+project/dist/
+project/.vite
+
+# Local env/config
+.env
+Data/*.sqlite3
+Data/db/**
+Data/*.db
+Data/*.log
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+'@ | Set-Content -Encoding UTF8 .gitignore
