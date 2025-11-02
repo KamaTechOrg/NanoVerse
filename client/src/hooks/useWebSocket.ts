@@ -14,7 +14,9 @@ function backendHost(): string {
 
 function wsUrl(): string {
   const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-  return `${proto}//${backendHost()}:8080/game/ws`;
+  // return `${proto}//${backendHost()}:8080/game/ws`;
+    return `${proto}//${backendHost()}:8080/ws`;
+
 /**
  * Decide backend host:
  * - in dev: ws://127.0.0.1:8080/ws

@@ -13,7 +13,7 @@ function AuthPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  if (authStorage.isAuthenticated()) return <Navigate to="/game" replace />;
+  if (authStorage.isAuthenticated()) return <Navigate to="/" replace />;
 
   const initialTab: "login" | "register" =
     location.pathname.startsWith("/register") ? "register" : "login";
@@ -56,13 +56,10 @@ function AuthPage() {
 
       {tab === "login" ? (
         <LoginForm
-          onSuccess={(user, token) => {
-            console.log("[App] Login success:", user, token);
-          }}
           onDone={(user, token) => {
             localStorage.setItem("token", token);
             localStorage.setItem("user", user);
-            navigate("/game");
+            navigate("/"); // ✅ now go to "/" instead of "/game"
           }}
         />
       ) : (
@@ -70,7 +67,7 @@ function AuthPage() {
           onDone={(user, token) => {
             localStorage.setItem("token", token);
             localStorage.setItem("user", user);
-            navigate("/game");
+            navigate("/"); // ✅ now go to "/"
           }}
         />
       )}
@@ -92,24 +89,24 @@ export default function App() {
     <BrowserRouter>
       <TopBar />
       <Routes>
+        {/* ✅ Root "/" is now the game page if logged in */}
         <Route
           path="/"
-          element={<Navigate to={isAuthed ? "/game" : "/login"} replace />}
+          element={
+            isAuthed ? (
+              <PrivateRoute>
+                <WebSocketProvider>
+                  <GamePage />
+                </WebSocketProvider>
+              </PrivateRoute>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
         />
 
         <Route path="/login" element={<AuthPage />} />
         <Route path="/register" element={<AuthPage />} />
-
-        <Route
-          path="/game"
-          element={
-            <PrivateRoute>
-              <WebSocketProvider>
-                <GamePage />
-              </WebSocketProvider>
-            </PrivateRoute>
-          }
-        />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
