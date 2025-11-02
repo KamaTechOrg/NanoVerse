@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { X } from "lucide-react";
-// import { useWebSocket } from "../../hooks/useWebSocket";
 import { useSharedWebSocket } from "../../context/WebSocketProvider";
 import Sidebar from "./Sidebar";
 import ChatInterface from "./ChatInterface";
@@ -18,9 +17,9 @@ export type LocalPlayer = {
 
 interface ChatRootProps {
   onClose?: () => void;
-  playerId: string;                  // who I am
-  currentChunkId?: string | null;    // my server-known chunk id
-  playersInChunk: LocalPlayer[];     // live from VoxelGrid
+  playerId: string;
+  currentChunkId?: string | null;
+  playersInChunk: LocalPlayer[];
 }
 
 const ChatRoot: React.FC<ChatRootProps> = ({
@@ -36,23 +35,18 @@ const ChatRoot: React.FC<ChatRootProps> = ({
     selectPlayer,
     reactToMessage,
     deleteMessage,
-    currentPlayerId, // we actually rely on the prop playerId for "me", but we keep this around for debugging if needed
+    currentPlayerId,
     unreadCounts,
     markRead,
   } = useSharedWebSocket();
 
-  // "me"
   const meId = playerId;
-
-  // chunkId we think we're in
   const chunkId = currentChunkId ?? playersInChunk[0]?.chunk_id ?? "chunk_0_0";
 
-  // locate my own record (row/col)
   const me = useMemo(() => {
     return playersInChunk.find((p) => p.id === meId) || null;
   }, [playersInChunk, meId]);
 
-  // find nearest other player in this chunk to me
   const nearestLocal = useMemo(() => {
     if (!me) return null;
     let best: LocalPlayer | null = null;
@@ -73,7 +67,6 @@ const ChatRoot: React.FC<ChatRootProps> = ({
 
   const nearestPlayerId = nearestLocal?.id;
 
-  // convert playersInChunk → sidebar format
   const sidebarPlayers = useMemo(() => {
     return playersInChunk.map((p) => ({
       id: p.id,
@@ -83,7 +76,6 @@ const ChatRoot: React.FC<ChatRootProps> = ({
     }));
   }, [playersInChunk]);
 
-  // Debug log
   useEffect(() => {
     console.log({
       meId,
@@ -93,7 +85,6 @@ const ChatRoot: React.FC<ChatRootProps> = ({
     });
   }, [meId, chunkId, nearestPlayerId, sidebarPlayers]);
 
-  // Auto-select nearest player on mount / when nearest changes
   useEffect(() => {
     if (!nearestLocal) return;
     if (!selectedPlayer || selectedPlayer.id !== nearestLocal.id) {
@@ -104,7 +95,23 @@ const ChatRoot: React.FC<ChatRootProps> = ({
     }
   }, [nearestLocal, selectedPlayer, selectPlayer]);
 
-  // Theme state (unchanged)
+  // ✅ NEW: Clear chat when "clearChat" event fired from VoxelGrid
+  const [localMessages, setLocalMessages] = useState(messages);
+
+  useEffect(() => {
+    setLocalMessages(messages);
+  }, [messages]);
+
+  useEffect(() => {
+    const handleClear = () => {
+      console.log("[ChatRoot] clearing messages because player is alone in chunk");
+      setLocalMessages([]);
+      selectPlayer(null as any);
+    };
+    window.addEventListener("clearChat", handleClear);
+    return () => window.removeEventListener("clearChat", handleClear);
+  }, [selectPlayer]);
+
   const [showCustomization, setShowCustomization] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<ChatTheme>({
     name: "Cyber Blue",
@@ -124,7 +131,6 @@ const ChatRoot: React.FC<ChatRootProps> = ({
         color: currentTheme.textColor,
       }}
     >
-      {/* Sidebar with active players */}
       <Sidebar
         activePlayers={sidebarPlayers as any}
         nearestPlayerId={nearestPlayerId}
@@ -135,7 +141,6 @@ const ChatRoot: React.FC<ChatRootProps> = ({
         onMarkRead={markRead}
       />
 
-      {/* Main Chat Area */}
       <div className="flex-1 h-full flex flex-col">
         <div className="px-4 py-3 border-b border-slate-700 flex items-center justify-between">
           <div className="font-semibold">Game Chat</div>
@@ -160,7 +165,7 @@ const ChatRoot: React.FC<ChatRootProps> = ({
 
         <div className="flex-1 min-h-0">
           <ChatInterface
-            messages={messages}
+            messages={localMessages} // ✅ use localMessages now
             selectedPlayer={selectedPlayer}
             currentPlayerId={meId}
             onSendMessage={(text, quoted) => {
@@ -170,15 +175,10 @@ const ChatRoot: React.FC<ChatRootProps> = ({
                 return;
               }
               if (nearestPlayerId && selectedPlayer.id !== nearestPlayerId) {
-                alert(
-                  "You can only chat with the nearest player in your chunk."
-                );
+                alert("You can only chat with the nearest player in your chunk.");
                 return;
               }
-              // this calls useWebSocket.sendMessage
-              sendMessage(text, quoted, {
-                chunkId,
-              });
+              sendMessage(text, quoted, { chunkId });
             }}
             onReactMessage={(messageId, reaction) =>
               reactToMessage(messageId, reaction)
