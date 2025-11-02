@@ -42,26 +42,21 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   nearestPlayerId,
 }) => {
   const [input, setInput] = useState("");
-  const [quotedMessage, setQuotedMessage] = useState<Message | undefined>(
-    undefined
-  );
+  const [quotedMessage, setQuotedMessage] = useState<Message | undefined>(undefined);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showPlayers, setShowPlayers] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
 
-  // safe display text even if deleted
   const msgText = (m?: Message) =>
     !m ? "" : (m as any).deleted ? "Message deleted" : m.message ?? "";
 
-  // whether I’m allowed to send to selectedPlayer
   const canSend = useMemo(() => {
     if (!selectedPlayer) return false;
-    if (selectedPlayer.id === currentPlayerId) return false; // can't message self
+    if (selectedPlayer.id === currentPlayerId) return false;
     if (!nearestPlayerId) return true;
     return selectedPlayer.id === nearestPlayerId;
   }, [selectedPlayer, nearestPlayerId, currentPlayerId]);
 
-  // auto-scroll on new messages
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -70,7 +65,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     const text = input.trim();
     if (!text) return;
 
-    // re-check guard before actually firing
     if (!selectedPlayer) return;
     if (selectedPlayer.id === currentPlayerId) {
       alert("You can't chat with yourself.");
@@ -97,61 +91,61 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const handleGifSelect = (gifUrl: string) => setInput((v) => v + ` ${gifUrl} `);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="relative flex flex-col h-full min-h-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Toolbar */}
-      <div className="px-4 py-2 border-b border-slate-700 flex items-center justify-between">
-        <div className="text-sm">
+      <div className="px-3 sm:px-4 py-3 border-b border-slate-700 bg-slate-800 flex items-center justify-between">
+        <div className="text-xs sm:text-sm flex items-center gap-2 min-w-0">
           {selectedPlayer ? (
             <>
-              Chat with{" "}
-              <span className="font-semibold">
+              <span className="text-slate-400 hidden sm:inline">Chat with</span>
+              <span className="font-semibold text-white truncate">
                 {selectedPlayer.username}
               </span>
               {selectedPlayer.id === currentPlayerId && (
-                <span className="ml-1 text-xs px-1 py-0.5 rounded bg-emerald-600/40 border border-emerald-500/60">
+                <span className="text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 whitespace-nowrap">
                   you
                 </span>
               )}
               {nearestPlayerId &&
                 selectedPlayer.id === nearestPlayerId &&
                 selectedPlayer.id !== currentPlayerId && (
-                  <span className="ml-1 text-xs px-1 py-0.5 rounded bg-sky-600/40 border border-sky-500/60">
+                  <span className="text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-300 whitespace-nowrap">
                     nearest
                   </span>
                 )}
             </>
           ) : (
-            <span className="text-slate-400">Select a player to start</span>
+            <span className="text-slate-400">Select a player</span>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* player list modal */}
+        {/* כפתורים מימין: People + Settings */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
-            onClick={() => setShowPlayers((v) => !v)}
+            onClick={() => setShowPlayers(true)}
             title="Players in chunk"
-            className="p-2 rounded hover:bg-slate-600/50"
+            className="p-1.5 sm:p-2 rounded-lg hover:bg-slate-700/50 transition-colors"
           >
-            <Users size={18} />
+            <Users size={18} className="sm:w-[18px] sm:h-[18px]" />
           </button>
 
           <button
-            className="p-2 rounded hover:bg-slate-600/50"
+            className="p-1.5 sm:p-2 rounded-lg hover:bg-slate-700/50 transition-colors"
             title="Settings"
           >
-            <Settings size={18} />
+            <Settings size={18} className="sm:w-[18px] sm:h-[18px]" />
           </button>
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-auto p-4 space-y-2">
+      {/* Messages – תופס 100% רוחב/גובה */}
+      <div className="flex-1 w-full min-w-0 overflow-auto p-3 sm:p-4 space-y-2 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
         {messages.map((m, idx) => {
           const prevMessage = idx > 0 ? messages[idx - 1] : null;
           const nextMessage = idx < messages.length - 1 ? messages[idx + 1] : null;
           const isOwn = m.from === currentPlayerId;
 
-          return (
+        return (
             <MessageItem
               key={m.id}
               message={m}
@@ -159,9 +153,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               nextMessage={nextMessage}
               isOwn={isOwn}
               currentPlayerId={currentPlayerId}
-              onReact={(messageId, reaction) =>
-                onReactMessage(messageId, reaction)
-              }
+              onReact={(messageId, reaction) => onReactMessage(messageId, reaction)}
               onDelete={(id) => onDeleteMessage(id)}
               onQuote={() => setQuotedMessage(m)}
             />
@@ -172,15 +164,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
       {/* Quoted preview */}
       {quotedMessage && (
-        <div className="px-4 py-2 border-t border-slate-700 bg-slate-800/60 text-xs flex items-center gap-2">
-          <Quote size={14} />
-          <div className="flex-1 truncate">
+        <div className="px-3 sm:px-4 py-2 border-t border-slate-700 bg-slate-800 text-xs flex items-center gap-2">
+          <Quote size={14} className="text-slate-400 shrink-0" />
+          <div className="flex-1 truncate text-slate-300">
             Replying to{" "}
-            <span className="font-semibold">{quotedMessage.from}</span>:{" "}
+            <span className="font-semibold text-white">{quotedMessage.from}</span>:{" "}
             {msgText(quotedMessage)}
           </div>
           <button
-            className="p-1 rounded hover:bg-slate-700"
+            className="p-1 rounded hover:bg-slate-700 shrink-0"
             onClick={() => setQuotedMessage(undefined)}
           >
             <X size={16} />
@@ -189,13 +181,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       )}
 
       {/* Input bar */}
-      <div className="p-3 border-t border-slate-700 flex items-center gap-2">
+      <div className="p-2 sm:p-3 border-t border-slate-700 bg-slate-800 flex items-center gap-1.5 sm:gap-2">
         <button
-          className="p-2 rounded hover:bg-slate-700"
+          className="p-1.5 sm:p-2 rounded-lg hover:bg-slate-700/50 transition-colors shrink-0"
           title="Emoji / GIF"
           onClick={() => setShowEmojiPicker((v) => !v)}
         >
-          <Smile size={18} />
+          <Smile size={16} className="sm:w-[18px] sm:h-[18px]" />
         </button>
 
         <input
@@ -207,12 +199,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               if (canSend) handleSend();
             }
           }}
-          className="flex-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-sky-500"
+          className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500/50 transition-all placeholder:text-slate-500"
           placeholder={
             selectedPlayer
               ? canSend
                 ? `Message ${selectedPlayer.username}...`
-                : `You can only chat with the nearest player`
+                : `Only nearest player`
               : "Select a player..."
           }
         />
@@ -220,14 +212,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         <button
           onClick={handleSend}
           disabled={!input.trim() || !canSend}
-          className={`px-3 py-2 rounded flex items-center gap-2 transition ${
+          className={`px-3 py-2 rounded-lg flex items-center gap-1.5 sm:gap-2 transition-all shrink-0 ${
             !input.trim() || !canSend
-              ? "bg-slate-700 text-slate-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700 text-white"
+              ? "bg-slate-700/50 text-slate-500 cursor-not-allowed"
+              : "bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/20"
           }`}
         >
-          <Send size={16} />
-          Send
+          <Send size={14} className="sm:w-4 sm:h-4" />
+          <span className="hidden sm:inline text-sm font-medium">Send</span>
         </button>
       </div>
 
@@ -240,36 +232,52 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         />
       )}
 
-      {/* Players modal */}
+      {/* Players panel – מעל חלון הצ'אט בלבד */}
       {showPlayers && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-slate-800 border border-slate-600 rounded-xl p-4 w-80 max-h-[70vh] overflow-auto shadow-2xl">
-            <div className="flex items-center justify-between mb-2">
-              <div className="font-semibold">Players in this chunk</div>
+        <div
+          className="
+            absolute
+            left-2 right-2
+            top-14
+            bottom-16
+            z-50
+            pointer-events-auto
+          "
+        >
+          <div className="
+            h-full w-full
+            bg-slate-900 border border-slate-700 rounded-2xl shadow-xl
+            flex flex-col overflow-hidden min-h-0
+          ">
+            {/* כותרת */}
+            <div className="flex items-center justify-between px-3 py-2 border-b border-slate-700 shrink-0">
+              <div className="font-semibold text-white">Players in this chunk</div>
               <button
-                className="p-1 rounded hover:bg-slate-700"
+                className="p-1.5 rounded hover:bg-slate-700/60"
                 onClick={() => setShowPlayers(false)}
               >
-                <X size={16} />
+                <X size={18} />
               </button>
             </div>
-            <ul className="space-y-2">
+
+            {/* רשימה – גלילה בתוך הפאנל */}
+            <ul className="flex-1 overflow-y-auto space-y-2 p-3 pr-2 scrollbar-thin scrollbar-thumb-slate-700">
               {playersInChunk.map((p) => {
                 const isMe = p.id === currentPlayerId;
                 const isNearest = p.id === (nearestPlayerId || "");
                 return (
                   <li
                     key={p.id}
-                    className={`flex items-center justify-between p-2 rounded border ${
-                      isNearest
-                        ? "border-emerald-500 animate-pulse"
-                        : "border-slate-600"
-                    } ${!isMe && !isNearest ? "opacity-60" : ""}`}
+                    className={`flex items-center justify-between p-3 rounded-xl border transition-all
+                      ${isNearest
+                        ? "border-emerald-500/60 bg-emerald-500/10 shadow-lg shadow-emerald-500/20"
+                        : "border-slate-600/50 bg-slate-800/50"}
+                      ${!isMe && !isNearest ? "opacity-60" : ""}`}
                   >
-                    <span>
+                    <span className="text-sm font-medium">
                       {p.username ?? p.id}{" "}
                       {isMe && (
-                        <span className="ml-1 text-xs px-1 py-0.5 rounded bg-emerald-600/40 border border-emerald-500/60">
+                        <span className="ml-1 text-xs px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300">
                           you
                         </span>
                       )}
@@ -289,4 +297,3 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 };
 
 export default ChatInterface;
-

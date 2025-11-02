@@ -113,3 +113,4 @@ const CustomizationPanel: React.FC<CustomizationPanelProps> = ({
 };
 
 export default CustomizationPanel;
+

@@ -28,29 +28,25 @@ const QuoteToast: React.FC<{ text: string; onClose: () => void }> = ({
 }) => {
   return (
     <div
-      className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[10001] max-w-[70vw] w-[680px] px-5 py-4
+      className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 max-w-[90vw] sm:max-w-[70vw] w-full sm:w-[680px] px-4 sm:px-5 py-4
                  bg-white/95 text-slate-800 rounded-2xl shadow-2xl border border-slate-200
                  backdrop-blur-sm"
       role="status"
       aria-live="polite"
     >
       <div className="flex items-start gap-3">
-        <div
-          className="mt-0.5 h-full border-l-4 border-purple-400 rounded-full"
-          aria-hidden
-        />
-        <div className="flex-1">
-          <div className="text-sm uppercase tracking-wide text-slate-500">
+        <div className="mt-0.5 h-full border-l-4 border-purple-400 rounded-full" aria-hidden />
+        <div className="flex-1 min-w-0">
+          <div className="text-xs sm:text-sm uppercase tracking-wide text-slate-500">
             Message found here
           </div>
-          <blockquote className="mt-1 text-lg leading-snug text-slate-900">
+          <blockquote className="mt-1 text-base sm:text-lg leading-snug text-slate-900 break-words">
             "{text}"
           </blockquote>
         </div>
         <button
           onClick={onClose}
-          className="shrink-0 inline-flex items-center justify-center rounded-full p-1
-                     hover:bg-slate-100 transition"
+          className="shrink-0 inline-flex items-center justify-center rounded-full p-1 hover:bg-slate-100 transition"
           aria-label="Close"
           title="Close"
         >
@@ -62,7 +58,7 @@ const QuoteToast: React.FC<{ text: string; onClose: () => void }> = ({
 };
 
 const VoxelGrid: React.FC = () => {
-  const {isConnected, sendCommand} = useSharedWebSocket()
+  const { isConnected, sendCommand } = useSharedWebSocket();
 
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [playerCount, setPlayerCount] = useState(0);
@@ -72,11 +68,9 @@ const VoxelGrid: React.FC = () => {
   const [showInstructions, setShowInstructions] = useState(false);
 
   const [players, setPlayers] = useState<PlayerInChunk[]>([]);
-
   const [showMessageInput, setShowMessageInput] = useState(false);
   const [currentMessage, setCurrentMessage] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-
   const [quoteText, setQuoteText] = useState<string | null>(null);
 
   useEffect(() => {
@@ -110,7 +104,6 @@ const VoxelGrid: React.FC = () => {
 
       if (data.type === "announcement" && data.data?.text) {
         const text = String(data.data.text);
-
         if (text === SYSTEM_TREASURE) {
           setNotice(text);
           setTimeout(() => setNotice(null), 3000);
@@ -131,54 +124,40 @@ const VoxelGrid: React.FC = () => {
     };
 
     window.addEventListener("game-update", handleGameUpdate as EventListener);
-    return () =>
-      window.removeEventListener("game-update", handleGameUpdate as EventListener);
+    return () => window.removeEventListener("game-update", handleGameUpdate as EventListener);
   }, []);
 
   const handleKeyPress = useCallback(
     (event: KeyboardEvent) => {
       if (!isConnected) return;
 
-      const target = event.target as HTMLElement | null;
-      const tag = target?.tagName?.toLowerCase();
-      if (tag === "input" || tag === "textarea" || target?.isContentEditable) {
+      // ✅ אל תזיז את השחקן כשמקלידים בתוך אינפוט/טקסט-אריאה/ContentEditable
+      const ae = document.activeElement as HTMLElement | null;
+      const tag = ae?.tagName?.toLowerCase();
+      if (tag === "input" || tag === "textarea" || ae?.isContentEditable) {
         return;
       }
 
       const key = event.key.toLowerCase();
       let action = "";
-
       switch (key) {
         case "arrowup":
         case "w":
-          sendCommand("up");
-          action = "Moved Up";
-          break;
+          sendCommand("up"); action = "Moved Up"; break;
         case "arrowdown":
         case "s":
-          sendCommand("down");
-          action = "Moved Down";
-          break;
+          sendCommand("down"); action = "Moved Down"; break;
         case "arrowleft":
         case "a":
-          sendCommand("left");
-          action = "Moved Left";
-          break;
+          sendCommand("left"); action = "Moved Left"; break;
         case "arrowright":
         case "d":
-          sendCommand("right");
-          action = "Moved Right";
-          break;
+          sendCommand("right"); action = "Moved Right"; break;
         case "m":
-          setShowMessageInput(true);
-          action = "Writing Message";
-          break;
+          setShowMessageInput(true); action = "Writing Message"; break;
         case "c":
-          sendCommand("c");
-          action = "Color Changed";
-          break;
+          sendCommand("c"); action = "Color Changed"; break;
       }
-
       if (action) {
         setLastAction(action);
         setTimeout(() => setLastAction(""), 1500);
@@ -228,13 +207,11 @@ const VoxelGrid: React.FC = () => {
         );
       }
     }
-
     return cells;
   };
 
   const enrichedPlayers = useMemo(() => {
-    const chunkId =
-      gameState?.chunk_id ?? sessionStorage.getItem("current_chunk_id") ?? null;
+    const chunkId = gameState?.chunk_id ?? sessionStorage.getItem("current_chunk_id") ?? null;
     return players.map((p) => ({
       ...p,
       username: p.id,
@@ -247,87 +224,97 @@ const VoxelGrid: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-x-hidden">
-      <div className="container mx-auto px-4 pt-8">
-        <div className="text-center mb-6">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+      <div className="container mx-auto px-4 pt-4 sm:pt-8">
+        <div className="text-center mb-4 sm:mb-6">
+          <h1 className="text-3xl sm:text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             Voxel World
           </h1>
-          <p className="text-slate-300 text-lg">
+          <p className="text-slate-300 text-sm sm:text-lg">
             A multiplayer voxel playground where colors come alive
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6">
           <div
-            className={`flex items-center gap-2 px-4 py-2 rounded-full ${
+            className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm ${
               isConnected ? "bg-green-500/20 text-green-300" : "bg-red-500/20 text-red-300"
             }`}
           >
-            {isConnected ? <Wifi size={18} /> : <WifiOff size={18} />}
-            <span className="font-medium">
+            {isConnected ? <Wifi size={16} className="sm:w-[18px] sm:h-[18px]" /> : <WifiOff size={16} className="sm:w-[18px] sm:h-[18px]" />}
+            <span className="font-medium hidden sm:inline">
               {isConnected ? "Connected" : "Connecting..."}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/20 text-blue-300">
-            <Users size={18} />
-            <span className="font-medium">{playerCount} Players</span>
+          <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-blue-500/20 text-blue-300 text-sm">
+            <Users size={16} className="sm:w-[18px] sm:h-[18px]" />
+            <span className="font-medium">{playerCount}</span>
+            <span className="hidden sm:inline">Players</span>
           </div>
 
           <button
             onClick={() => setShowInstructions(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/20 text-amber-300
-                     hover:bg-amber-500/30 transition-all duration-200 transform hover:scale-105"
+            className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-amber-500/20 text-amber-300
+                     hover:bg-amber-500/30 transition-all duration-200 transform hover:scale-105 text-sm"
           >
-            <HelpCircle size={18} />
-            <span className="font-medium">How to Play</span>
+            <HelpCircle size={16} className="sm:w-[18px] sm:h-[18px]" />
+            <span className="font-medium hidden sm:inline">How to Play</span>
           </button>
 
           {lastAction && (
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/20 text-purple-300 animate-pulse">
-              <Gamepad2 size={18} />
+            <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-purple-500/20 text-purple-300 animate-pulse text-sm">
+              <Gamepad2 size={16} className="sm:w-[18px] sm:h-[18px]" />
               <span className="font-medium">{lastAction}</span>
             </div>
           )}
         </div>
       </div>
 
-      <div className="flex flex-row-reverse min-h-[60vh]">
-        <div
-          className={`transition-all duration-500 ${
-            showChat ? "w-3/4" : "w-full"
-          } flex justify-center items-center px-4`}
-        >
-          {gameState ? (
-            <div
-              className="voxel-grid bg-slate-800/50 p-4 rounded-2xl backdrop-blur-sm border border-slate-700/50 shadow-2xl"
-              style={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${gameState.w}, 1fr)`,
-                gap: "1px",
-                maxWidth: "800px",
-                aspectRatio: "1",
-                width: "100%",
-              }}
-            >
-              {renderGrid()}
+      {/* לוח המשחק – תמיד ברוחב מלא */}
+      <div className="flex justify-center items-center px-4 py-4 min-h-[60vh]">
+        {gameState ? (
+          <div
+            className="voxel-grid bg-slate-800/50 p-3 sm:p-4 rounded-2xl backdrop-blur-sm border border-slate-700/50 shadow-2xl"
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${gameState.w}, 1fr)`,
+              gap: "1px",
+              maxWidth: "min(800px, 90vw)",
+              aspectRatio: "1",
+              width: "100%",
+            }}
+          >
+            {renderGrid()}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center w-full max-w-md aspect-square bg-slate-800/50 rounded-2xl backdrop-blur-sm border border-slate-700/50">
+            <div className="text-center">
+              <div className="animate-spin w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-4" />
+              <p className="text-slate-400 text-sm">Connecting to voxel world...</p>
             </div>
-          ) : (
-            <div className="flex items-center justify-center w-96 h-96 bg-slate-800/50 rounded-2xl backdrop-blur-sm border border-slate-700/50">
-              <div className="text-center">
-                <div className="animate-spin w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-4" />
-                <p className="text-slate-400">Connecting to voxel world...</p>
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
+      </div>
 
-        <div
-          className={`transition-all duration-500 ${
-            showChat ? "w-1/4 opacity-100" : "w-0 opacity-0 pointer-events-none"
-          } bg-slate-900 text-white shadow-2xl overflow-hidden border-l border-slate-800`}
-        >
-          {showChat && (
+      {/* חלונית הצ'אט – יחס קבוע פרופורציונלי לעמוד */}
+      {showChat && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/20 backdrop-blur-[1px] z-40 sm:hidden"
+            onClick={() => setShowChat(false)}
+          />
+          <div
+            className="
+              fixed z-[100]
+              right-3 xs:right-4 sm:right-6
+              bottom-16 xs:bottom-14 sm:bottom-12
+              bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto
+              aspect-[4/5]
+              w-[clamp(220px,22vw,380px)]
+              max-h-[600px]
+            "
+            style={{ maxHeight: "min(70vh, 600px)" }}
+          >
             <ChatRoot
               onClose={() => setShowChat(false)}
               playerId={myId}
@@ -336,31 +323,29 @@ const VoxelGrid: React.FC = () => {
               }
               playersInChunk={enrichedPlayers}
             />
-          )}
-        </div>
-      </div>
+          </div>
+        </>
+      )}
 
+      {/* כפתור צ'אט צף */}
       <button
         onClick={() => setShowChat((prev) => !prev)}
-        className="fixed top-6 right-6 bg-cyan-600 hover:bg-cyan-500 text-white p-3 rounded-full shadow-xl transition-all z-[10000]"
+        className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 rounded-full p-3 sm:p-3.5 bg-black/80 text-white shadow-lg hover:bg-black transition-transform hover:scale-110"
         title={showChat ? "Close Chat" : "Open Chat"}
+        aria-label={showChat ? "Close Chat" : "Open Chat"}
       >
-        {showChat ? <X size={22} /> : <MessageCircle size={22} />}
+        {showChat ? <X size={20} className="sm:w-[22px] sm:h-[22px]" /> : <MessageCircle size={20} className="sm:w-[22px] sm:h-[22px]" />}
       </button>
 
-      <div className="fixed bottom-4 left-4 text-sm text-slate-300 flex items-center gap-3 bg-slate-800/70 px-3 py-2 rounded-md backdrop-blur-sm border border-slate-700/50 shadow-lg">
-        {isConnected ? (
-          <Wifi className="text-green-400" size={16} />
-        ) : (
-          <WifiOff className="text-red-400" size={16} />
-        )}
-        <span>
-          {isConnected ? "Connected" : "Disconnected"} • {playerCount} players
-        </span>
+      {/* סטטוס חיבור */}
+      <div className="fixed bottom-4 left-4 text-xs sm:text-sm text-slate-300 flex items-center gap-2 sm:gap-3 bg-slate-800/70 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg backdrop-blur-sm border border-slate-700/50 shadow-lg">
+        {isConnected ? <Wifi className="text-green-400" size={14} /> : <WifiOff className="text-red-400" size={14} />}
+        <span className="hidden sm:inline">{isConnected ? "Connected" : "Disconnected"} • {playerCount} players</span>
+        <span className="sm:hidden">{playerCount}</span>
       </div>
 
       {notice && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-blue-50/90 text-blue-800 px-4 py-2 rounded-lg shadow-lg border border-blue-200">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-blue-50/90 text-blue-800 px-4 py-2 rounded-lg shadow-lg border border-blue-200 text-sm">
           {notice}
         </div>
       )}
@@ -370,20 +355,18 @@ const VoxelGrid: React.FC = () => {
       {showMessageInput && (
         <MessageInput
           onSubmit={(content: string) => {
-            sendCommand({ command: "m", content});
+            sendCommand({ command: "m", content });
             setShowMessageInput(false);
           }}
           onClose={() => setShowMessageInput(false)}
         />
       )}
 
-      {showInstructions && (
-        <InstructionsModal onClose={() => setShowInstructions(false)} />
-      )}
+      {showInstructions && <InstructionsModal onClose={() => setShowInstructions(false)} />}
 
       {currentMessage && <MessageBubble message={currentMessage} />}
       {error && (
-        <div className="fixed top-4 right-4 bg-red-50 text-red-600 px-4 py-3 rounded-lg shadow-lg border border-red-200">
+        <div className="fixed top-4 right-4 bg-red-50 text-red-600 px-4 py-3 rounded-lg shadow-lg border border-red-200 text-sm max-w-[90vw] sm:max-w-md">
           {error}
         </div>
       )}

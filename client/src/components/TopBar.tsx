@@ -21,8 +21,7 @@ export default function TopBar() {
   };
 
   return (
-    <div className="w-full border-b bg-white/70 backdrop-blur px-4 py-2 flex items-center justify-between">
-      <div className="font-semibold">Voxel World</div>
+   <div className="sticky top-0 z-60 w-full border-b bg-white/70 backdrop-blur px-4 py-2 flex items-center justify-between">      <div className="font-semibold">Voxel World</div>
       {isAuthed && (
         <button
           onClick={onLogout}
