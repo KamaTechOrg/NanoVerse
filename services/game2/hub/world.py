@@ -81,7 +81,6 @@ class WorldService:
 
     async def spawn_player(self, user_id: str, chunk_id: str, spawn: Coord) -> PlayerState:
            """Spawn player into chunk, assigning color directly if not already placed."""
-           print("In the spawn function")
            color = get_player_color_by_user_id(user_id)
            lock = self._lock_for(chunk_id)
 
@@ -96,7 +95,7 @@ class WorldService:
                else:    
                    underlying = board[spawn.row, spawn.col].clone()
    
-           self.player_db.save_position(user_id, chunk_id, spawn.row, spawn.col)
+           self.player_db.upsert(user_id, chunk_id, spawn.row, spawn.col)
            
            return PlayerState(
                user_id=user_id,
@@ -116,7 +115,7 @@ class WorldService:
             board[state.pos.row, state.pos.col] = state.underlying_cell
             self._mark_dirty(state.chunk_id)
             self.chunk_db.save_chunk(state.chunk_id, board)
-        self.player_db.save_position(state.user_id, state.chunk_id, state.pos.row, state.pos.col)
+        self.player_db.upsert(state.user_id, state.chunk_id, state.pos.row, state.pos.col)
         self.maybe_unload_chunk(state.chunk_id)
 
     def maybe_unload_chunk(self, chunk_id: str) -> None:
@@ -135,6 +134,6 @@ class WorldService:
             cy += 1
         elif direction == "left":
             cx -= 1
-        elif direction == "right":
+        elif direction == "right":   
             cx += 1
         return chunk_id_from_coords(cx, cy)

@@ -40,18 +40,15 @@ class MessageService:
             "timestamp": timestamp,
             "reaction": "none",
         }
-
-   
+ 
    
     def history_between(self, a: str, b: str, viewer: Optional[str] = None) -> List[dict]:
         msgs = self.db.get_messages_between(a, b)
         return [self._minimal_view(m, viewer) for m in msgs]
 
 
-
     def get_message_by_id(self, msg_id: str) -> Optional[dict]:
         return self.db.get_message_by_id(msg_id)
-
 
 
     def update_reaction(self, msg_id: int, reaction: str) -> None:

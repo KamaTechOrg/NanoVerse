@@ -3,13 +3,7 @@ from pathlib import Path
 from typing import List, Dict, Optional
 
 from datetime import datetime
-
-
-#pass it to the setting file and at the main file do the mkdir function
-ROOT_DIR = Path(__file__).resolve().parents[2]
-DATA_DIR = ROOT_DIR / "data"
-DATA_DIR.mkdir(parents=True, exist_ok=True)
-CHAT_DB_PATH = DATA_DIR / "chat.db"
+from ..core.settings import CHAT_DB_PATH
 
 class ChatDB:
     """
@@ -112,4 +106,4 @@ class ChatDB:
             cur = conn.cursor()
             cur.execute("UPDATE messages SET reaction=? WHERE id=?", (reaction, msg_id))
             conn.commit()
-            return cur.rowcount > 0
+            return cur.rowcount > 0    

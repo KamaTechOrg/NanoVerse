@@ -21,11 +21,12 @@ COLOR_BITS = {
 
 # Data paths
 DATA_DIR = Path("data")
-DB_PATH = DATA_DIR / "world.db"
+DB_PATH = DATA_DIR / "world.db"#??can remove it, not in use
 PLAYERS_DB_PATH = DATA_DIR / "players.db"
 SCROLLS_JSON_PATH = DATA_DIR / "message.json"##??change it to scroll_message
 HISTORY_JSON_PATH  = DATA_DIR / "history.json"
 
+CHAT_DB_PATH = DATA_DIR / "chat.db"
 
 
 CMD_UP = "up"

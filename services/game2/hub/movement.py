@@ -17,11 +17,10 @@ class MoveResult:
 class MovementService:
     """Handles player movement logic both within and between chunks.
      the board state and player database accordingly."""
-    def __init__(self, world: WorldService, chunk_db: ChunkDB, player_db: PlayerDB, chunk_players: ChunkPlayers) -> None:
+    def __init__(self, world: WorldService, chunk_db: ChunkDB, chunk_players: ChunkPlayers) -> None:
         self.world = world
         
         self.chunk_db = chunk_db
-        self.player_db = player_db
         self.chunk_players = chunk_players
  
     async def apply_move(self, state: PlayerState, dr: int, dc: int) -> MoveResult:
@@ -44,8 +43,7 @@ class MovementService:
         color = state.color
         board[nr, nc] = color
         state.pos = Coord(nr, nc)   
-        self.player_db.save_position(state.user_id, state.chunk_id, nr, nc)
-        self.chunk_players.update_position(state.chunk_id, state.user_id, nr, nc)
+        self.chunk_players.update_player_position(state.chunk_id, state.user_id, nr, nc)
         state.underlying_cell = new_underlying
         
     async def _transfer_between_chunks(self, state: PlayerState, direction: Direction) -> Tuple[bool, str]:
@@ -60,7 +58,6 @@ class MovementService:
         if not self.chunk_players.is_cell_free(state.chunk_id, target.row, target.col):
                 return False, old_chunk_id
             
-        ##??chekc if I need to chekc is_empty that the user wil not chage the color of the pixel if it already colored
         async with self.world._lock_for(old_chunk_id):
             old_board[state.pos.row, state.pos.col] = state.underlying_cell
             self.world._mark_dirty(old_chunk_id)
@@ -75,8 +72,6 @@ class MovementService:
         state.underlying_cell = new_under
         state.visible_cell = new_vis
         
-        ##??chekc how can I do it only one time instead two
-        self.player_db.save_position(state.user_id,state.chunk_id,state.pos.row,state.pos.col)
-        self.chunk_players.move_player(old_chunk_id, new_chunk_id, state.user_id, target.row, target.col)
+        self.chunk_players.move_player_to_chunk(old_chunk_id, new_chunk_id, state.user_id, target.row, target.col)
         return True, old_chunk_id
         

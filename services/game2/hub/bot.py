@@ -43,8 +43,6 @@ class BotService:
         self.device = "cpu"
         self.color = color_service
         
-        print("== in init the bot ==")
-
     def load_model(self, weights_path: str = "bot_gru.pt"):
         try:
              ckpt = torch.load(weights_path, map_location="cpu")
