@@ -11,7 +11,7 @@ const JWT_SECRET = process.env.AUTH_JWT_SECRET || 'CHANGE_ME_123456789';
 
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://127.0.0.1:7001';
 const GAME_SERVICE_URL = process.env.GAME_SERVICE_URL || 'http://127.0.0.1:7002';
-const FRONTEND_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+const FRONTEND_ORIGIN = (process.env.CORS_ORIGIN || 'http://localhost:5173').split(',');
 const CHAT_SERVICE_URL = process.env.CHAT_SERVICE_URL || 'http://127.0.0.1:8000';
 
 const app = express();

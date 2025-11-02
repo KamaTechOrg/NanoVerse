@@ -15,7 +15,7 @@ BIT_R1_IDX, BIT_G1_IDX, BIT_B1_IDX = 5, 6, 7
 
 COLOR_BITS = {
     "r": (BIT_R0_IDX, BIT_R1_IDX),
-    "g": (BIT_G0_IDX, BIT_G1_IDX),
+    "g": (BIT_G0_IDX, BIT_G1_IDX),   
     "b": (BIT_B0_IDX, BIT_B1_IDX),
 }
 
