@@ -11,8 +11,8 @@ class ChunkPlayers:
     - Loads chunk data automatically from DB when needed.
     """
 
-    def __init__(self):
-        self.db = PlayerDB()
+    def __init__(self, player_db: PlayerDB):
+        self.db = player_db
         # {chunk_id: {player_id: {"row": int, "col": int}}}
         self.chunk_player_map: Dict[str, Dict[str, Dict[str, int]]] = defaultdict(dict)
         self._lock = threading.Lock()
@@ -58,7 +58,7 @@ class ChunkPlayers:
         """Update player's coordinates inside a chunk."""
         with self._lock:
             if player_id in self.chunk_player_map.get(chunk_id, {}):
-                self.chunk_player_map[chunk_id][player_id] = {"row": row, "col": col}
+                self.chunk_player_map[chunk_id][player_id] = {"row": row, "col": col} #??can I take it out??
                 self.db.upsert(player_id, chunk_id, row, col)
                 
 

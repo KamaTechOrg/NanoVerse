@@ -200,7 +200,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
             }`}
           >
             {formatTime(message.timestamp)}
-          </div>
+          </div>   
         )}
 
         <div

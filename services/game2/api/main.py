@@ -2,7 +2,7 @@ import json
 import logging
 from typing import Any, get_args
 from fastapi import FastAPI, WebSocket
-from starlette.websockets    import WebSocketDisconnect
+from starlette.websockets import WebSocketDisconnect
 from ..core.settings import (
     CMD_UP, CMD_DOWN, CMD_LEFT, CMD_RIGHT,
     CMD_COLOR_PLUS_PLUS, CMD_SCROLL_WRITE, CMD_WHEREAMI, CHAT_TYPES, DATA_DIR
@@ -34,7 +34,7 @@ player_db = PlayerDB()
 chunk_db = ChunkDB()
 player_actions_history = PlayerActionHistory()
 scrolls_db = ScrollDB()
-chunk_players = ChunkPlayers()
+chunk_players = ChunkPlayers(player_db)
 
 
 world_service = WorldService(chunk_db, player_db, player_actions_history, chunk_players)
@@ -94,7 +94,7 @@ async def ws_endpoint(ws: WebSocket) -> None:
     player = session_store.get(ws)
     player_id = player.state.user_id if player else None
      
-    try:
+    try:   
         while True:
             raw = await ws.receive_text()
             try:   

@@ -8,6 +8,7 @@ import GamePage from "./components/VoxelGrid";
 import TopBar from "./components/TopBar";
 import { WebSocketProvider } from "./context/WebSocketProvider";
 
+// ---------------------- AUTH PAGE ----------------------
 function AuthPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,14 +30,25 @@ function AuthPage() {
 
       <div className="flex gap-2 mb-6">
         <button
-          className={`px-3 py-1.5 rounded ${tab === "login" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-          onClick={() => { setTab("login"); navigate("/login", { replace: true }); }}
+          className={`px-3 py-1.5 rounded ${
+            tab === "login" ? "bg-blue-600 text-white" : "bg-gray-200"
+          }`}
+          onClick={() => {
+            setTab("login");
+            navigate("/login", { replace: true });
+          }}
         >
           Sign In
         </button>
+
         <button
-          className={`px-3 py-1.5 rounded ${tab === "register" ? "bg-blue-600 text-white" : "bg-gray-200"}`}
-          onClick={() => { setTab("register"); navigate("/register", { replace: true }); }}
+          className={`px-3 py-1.5 rounded ${
+            tab === "register" ? "bg-blue-600 text-white" : "bg-gray-200"
+          }`}
+          onClick={() => {
+            setTab("register");
+            navigate("/register", { replace: true });
+          }}
         >
           Create Account
         </button>
@@ -66,36 +78,41 @@ function AuthPage() {
   );
 }
 
+// ---------------------- PRIVATE ROUTE ----------------------
 function PrivateRoute({ children }: { children: JSX.Element }) {
   const isAuthed = authStorage.isAuthenticated();
   return isAuthed ? children : <Navigate to="/login" replace />;
 }
 
+// ---------------------- MAIN APP ----------------------
 export default function App() {
   const isAuthed = authStorage.isAuthenticated();
 
   return (
     <BrowserRouter>
-      <WebSocketProvider>
-        <TopBar />
-        <Routes>
-          <Route path="/" element={<Navigate to={isAuthed ? "/game" : "/login"} replace />} />
+      <TopBar />
+      <Routes>
+        <Route
+          path="/"
+          element={<Navigate to={isAuthed ? "/game" : "/login"} replace />}
+        />
 
-          <Route path="/login" element={<AuthPage />} />
-          <Route path="/register" element={<AuthPage />} />
+        <Route path="/login" element={<AuthPage />} />
+        <Route path="/register" element={<AuthPage />} />
 
-          <Route
-            path="/game"
-            element={
-              <PrivateRoute>
+        <Route
+          path="/game"
+          element={
+            <PrivateRoute>
+              <WebSocketProvider>
                 <GamePage />
-              </PrivateRoute>
-            }
-          />
+              </WebSocketProvider>
+            </PrivateRoute>
+          }
+        />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </WebSocketProvider>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </BrowserRouter>
   );
 }

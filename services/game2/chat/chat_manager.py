@@ -59,20 +59,48 @@ class ChatManager:
                 await self.broadcast_to_player(partner, {"type": "typing", "typing": [player_id]})
             return
 
+        # if kind == "react":
+        #     msg_id = data.get("messageId")
+        #     reaction = data.get("reaction")
+        #     if not msg_id:
+        #         await ws.send_json({"type": "error", "message": "missing messageId"})
+        #         return
+
+        #     msg = self.messages.get_message_by_id(msg_id)
+        #     if not msg:
+        #         await ws.send_json({"type": "error", "message": "message not found"})
+        #         return
+
+        #     self.messages.update_reaction(msg_id, reaction)
+        #     await ws.send_json({"type": "react", "messageId": msg_id, "my_reaction": reaction})
+        #     return
         if kind == "react":
             msg_id = data.get("messageId")
             reaction = data.get("reaction")
-            if not msg_id:
-                await ws.send_json({"type": "error", "message": "missing messageId"})
+            if not msg_id or reaction not in ("like", "dislike", "none"):
+                await ws.send_json({"type": "error", "message": "invalid reaction data"})
                 return
-
+        
+            try:
+                msg_id = int(msg_id)  # ✅ ensure it's int
+            except Exception:
+                await ws.send_json({"type": "error", "message": "invalid message id"})
+                return
+        
             msg = self.messages.get_message_by_id(msg_id)
             if not msg:
                 await ws.send_json({"type": "error", "message": "message not found"})
                 return
-
+        
             self.messages.update_reaction(msg_id, reaction)
-            await ws.send_json({"type": "react", "messageId": msg_id, "my_reaction": reaction})
+        
+            # Notify sender & receiver
+            sender = msg["sender_id"]
+            receiver = msg["receiver_id"]
+        
+            payload = {"type": "react", "messageId": msg_id, "my_reaction": reaction}
+            await self.broadcast_to_player(sender, payload)
+            await self.broadcast_to_player(receiver, payload)
             return
 
         if kind == "message":
