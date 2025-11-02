@@ -7,8 +7,18 @@ import {
   User,
 } from "../types/auth";
 
-// כתובת הבסיס מה-ENV (Edge). אם אין, נופל ל-localhost:8080
-const API_BASE_URL = import.meta.env.VITE_API_BASE ?? "http://localhost:8080";
+// Determine API base URL based on current location
+function getApiBaseUrl(): string {
+  // Use VITE_API_BASE if set in environment
+  const envUrl = import.meta.env.VITE_API_BASE;
+  if (envUrl) return envUrl;
+
+  // Otherwise use current origin (same protocol, host, port)
+  // This ensures it works on desktop, mobile, and any domain
+  return window.location.origin;
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -17,45 +27,16 @@ export class ApiError extends Error {
   }
 }
 
-// async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-//   const url = `${API_BASE_URL}${endpoint}`;
-
-//   const res = await fetch(url, {
-//     headers: {
-//       "Content-Type": "application/json",
-//       ...(options.headers ?? {}),
-//     },
-//     ...options,
-//   });
-
-//   if (!res.ok) {
-//     let msg = `HTTP ${res.status}`;
-//     try {
-//       const j = await res.json();
-//       msg = j?.detail || j?.error || JSON.stringify(j);
-//     } catch {
-//       // ignore
-//     }
-//     throw new ApiError(res.status, msg);
-//   }
-
-//   return res.json() as Promise<T>;
-// }
-
-// ---------- Auth ----------
-// src/utils/api.ts (החלף apiRequest הקיים)
-// src/utils/api.ts - החלפה של apiRequest
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
   console.log(`[apiRequest] START ${options.method ?? "GET"} ${url}`);
 
   const controller = new AbortController();
-  const timeoutMs = 20000; // 20s בזמן פיתוח — הורד/הגב לפי הצורך
+  const timeoutMs = 20000; // 20s during dev
   const timeoutId = setTimeout(() => {
     controller.abort();
   }, timeoutMs);
 
-  // וודא שלא מוחלף ה-signal שלנו אם caller העביר signal
   const finalOptions: RequestInit = {
     ...options,
     signal: controller.signal,
@@ -67,7 +48,7 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
 
   let res: Response;
   try {
-    console.log("tring to fetch the url in the api.ts file", url);
+    console.log("trying to fetch the url in the api.ts file", url);
 
     res = await fetch(url, finalOptions);
     console.log("succeed to fetch the url !!!");
@@ -94,7 +75,7 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
     throw new ApiError(res.status, msg);
   }
 
-  // נסה לפרס JSON — ובמקרה של תשובה ריקה החזר אובייקט רלוונטי
+  // Try to parse JSON — in case of empty response return empty object
   try {
     const text = await res.text();
     if (!text) return {} as T;
@@ -135,5 +116,3 @@ export const authHeader = (token?: string | null): Record<string, string> =>
 
 export type { User };
 export default { authApi, apiRequest, authHeader };
-
-

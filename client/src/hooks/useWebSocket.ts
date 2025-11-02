@@ -12,18 +12,15 @@ import { authStorage } from "../utils/auth";
  * - in dev: ws://127.0.0.1:8080/ws
  * - in prod: ws(s)://<actual-host>/ws
  */
-function backendHost(): string {
-  const h = window.location.hostname;
-  return h === "localhost" || h === "127.0.0.1" ? "127.0.0.1" : h;
-}
+// function backendHost(): string {
+//   const h = window.location.hostname;
+//   return h === "localhost" || h === "127.0.0.1" ? "127.0.0.1" : h;
+// }
 
 function wsUrl(): string {
   const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
-  // IMPORTANT: match your FastAPI websocket route
-  // In server main.py we had: @app.websocket("/ws")
-  // If you're actually mounting FastAPI under /game, adjust here.
-
-  return `${proto}//${backendHost()}:8080/game/ws`;
+  const host = window.location.host; // This includes the port if specified
+  return `${proto}//${host}/game/ws`;
 }
 
 type UseWS = {
