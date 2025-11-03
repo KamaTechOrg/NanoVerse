@@ -233,16 +233,16 @@ export function useWebSocket(): UseWS {
       const ws = socketRef.current;
       if (!ws || ws.readyState !== WebSocket.OPEN) return;
       ws.send(JSON.stringify({ type: "select", selectedPlayer: p.id }));
-      ws.send(JSON.stringify({ type: "read", with: p.id }));
+      // ws.send(JSON.stringify({ type: "read", with: p.id }));//???
       setUnreadCounts((prev) => ({ ...prev, [p.id]: 0 }));
     },
     [setSelectedPlayer]
   );
 
   const markRead = useCallback((playerId: string) => {
-    const ws = socketRef.current;
-    if (!ws || ws.readyState !== WebSocket.OPEN) return;
-    ws.send(JSON.stringify({ type: "read", with: playerId }));
+    // const ws = socketRef.current;
+    // if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    // ws.send(JSON.stringify({ type: "read", with: playerId }));//??
     setUnreadCounts((prev) => ({ ...prev, [playerId]: 0 }));
   }, []);
 

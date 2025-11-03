@@ -234,7 +234,7 @@ const VoxelGrid: React.FC = () => {
       <div className="container mx-auto px-4 pt-4 sm:pt-8">
         <div className="text-center mb-4 sm:mb-6">
           <h1 className="text-3xl sm:text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Voxel World
+          NanoVerse
           </h1>
           <p className="text-slate-300 text-sm sm:text-lg">
             A multiplayer voxel playground where colors come alive
