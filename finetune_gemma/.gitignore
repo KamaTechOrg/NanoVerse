@@ -1,0 +1,35 @@
+# === Model weights and checkpoints ===
+*.bin
+*.pt
+*.safetensors
+*.ckpt
+*.h5
+
+# === Temporary / backup / data files ===
+*.bak
+*.log
+*.tmp
+*.jsonl
+*.csv
+
+# === Adapter and training outputs ===
+adapters/*
+!adapters/.gitkeep
+!adapters/player1/README.md
+!adapters/player1/config.json
+
+# === Local datasets and preprocessed data ===
+data/
+!data/.gitkeep
+
+# === Python cache ===
+__pycache__/
+*.pyc
+
+# === Virtual envs ===
+venv/
+.env/
+.venv/
+
+# === Misc ===
+.DS_Store
