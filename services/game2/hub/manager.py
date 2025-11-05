@@ -55,7 +55,7 @@ class Hub:
             state = existing_session.state
         else:
             if bot_state is not None:
-                state = bot_state
+                state = bot_state.state##??see why need I chagne it like this
             else:
                 chunk_id, spawn = await self.world.get_spawn_position(user_id)
                 state = await self.world.spawn_player(user_id, chunk_id,spawn)
@@ -72,9 +72,11 @@ class Hub:
 
              user_id = sess.state.user_id             
              remaining = self.sessions.sockets_for_user(user_id)
+            
              if not remaining:  
                  await self.world.despawn_player(sess.state) 
-                    # self.bots.start(user_id, sess.state)
+                 self.bots.start(user_id, sess.state)
+                 print("start the bot")
          except Exception as e:
              import traceback
              traceback.print_exc()

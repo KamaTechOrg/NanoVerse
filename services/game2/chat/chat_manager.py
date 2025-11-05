@@ -80,24 +80,24 @@ class ChatManager:
             if not msg_id or reaction not in ("like", "dislike", "none"):
                 await ws.send_json({"type": "error", "message": "invalid reaction data"})
                 return
-        
+
             try:
                 msg_id = int(msg_id)  # ✅ ensure it's int
             except Exception:
                 await ws.send_json({"type": "error", "message": "invalid message id"})
                 return
-        
+
             msg = self.messages.get_message_by_id(msg_id)
             if not msg:
                 await ws.send_json({"type": "error", "message": "message not found"})
                 return
-        
+
             self.messages.update_reaction(msg_id, reaction)
-        
+
             # Notify sender & receiver
             sender = msg["sender_id"]
             receiver = msg["receiver_id"]
-        
+
             payload = {"type": "react", "messageId": msg_id, "my_reaction": reaction}
             await self.broadcast_to_player(sender, payload)
             await self.broadcast_to_player(receiver, payload)
@@ -139,5 +139,5 @@ class ChatManager:
             except Exception as e:
                 print(f"[WARN] Failed to record chat action for {player_id}: {e}")
             return
-
+    
         await ws.send_json({"type": "error", "message": f"unknown type: {kind}"})
