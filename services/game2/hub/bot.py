@@ -135,8 +135,13 @@ class BotService:
             else:
                 pred_idx = int(torch.argmax(probs, dim=0).item())
             token = IDX_TO_TOKEN[pred_idx]
+            # sleep_norm = float(sleep_reg.item())
+            # sleep_sec = max(0.5, min(sleep_norm * MAX_GAP_SEC, 10.0))
+            import math
+            
             sleep_norm = float(sleep_reg.item())
-            sleep_sec = max(0.5, min(sleep_norm * MAX_GAP_SEC, 10.0))
+            sleep_sec = min(math.pow(2, sleep_norm * 5), MAX_GAP_SEC)
+            
             print(f"[BOT DEBUG] {ctx.user_id} probs={probs.cpu().numpy().round(3)} "
                   f"pred_token={token} prev_gap={prev_gap:.2f}s prev_delta_norm={prev_delta_norm:.2f}")
         token = self._mask_blocked_move(logits, token, state, occ)
@@ -158,6 +163,7 @@ class BotService:
                         ctx.state = result
                     elif hasattr(result, "new_state"):
                         ctx.state = result.new_state
+                        ##???here I have a problem becuase the function apply_move return only true or false,
                     await self.scroll.broadcast_chunk(ctx.state.chunk_id)
                 elif token == ActionToken.COLOR:
                     print("[BOT] color++")
@@ -178,7 +184,7 @@ class BotService:
 
     def start(self, user_id: str, state: PlayerState,
               h: Optional[torch.Tensor] = None,
-              last_token: int = 0,
+              last_token: int = 2,##??I think that this a problem that every time I put the last token be like  this - I checked it and this that this not solve the problem
               last_ts: float = 0.0):
         if (self.model is None) or (not self.user_vocab):
             self.load_model()
