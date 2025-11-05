@@ -133,12 +133,13 @@ class Hub:
             return 
         self.color_service.color_plus_plus(sess.state)
         await self.scrolls.broadcast_chunk(sess.state.chunk_id)
-        
+        players = self.chunk_players.get_players_in_chunk(chunk_id= sess.state.chunk_id)
         board = self.world.ensure_chunk(sess.state.chunk_id)
         self.world.player_actions_history.append_player_action(
                     sess.state.user_id,
                     sess.state.chunk_id,
                     ActionToken.COLOR,
-                    board,  
+                    board, 
+                   players
                 )
         

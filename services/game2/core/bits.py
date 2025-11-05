@@ -12,13 +12,13 @@ def set_bit(v: torch.Tensor, bit: int, one: bool) -> torch.Tensor:
     """Set/Clear single bit on an 8-bit tensor value."""
     mask = torch.tensor(1 << bit, dtype=DTYPE)
     return (v | mask) if one else (v & (~mask & torch.tensor(0xFF, dtype=DTYPE)))
-
+    
 def get_bit(v: torch.Tensor, bit: int) -> torch.Tensor:
     return (v >> bit) & 1
 
 def get2(v: torch.Tensor, b0: int, b1: int) -> torch.Tensor:
     return ((v >> b1) & 1) * 2 + ((v >> b0) & 1)
-
+   
 def set2(v: torch.Tensor, b0: int, b1: int, x: int) -> torch.Tensor:
     """Set 2-bit value (0–3) into given bits."""
     x &= 3

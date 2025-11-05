@@ -11,7 +11,7 @@ function backendHost(): string {
   const h = window.location.hostname;
   return h === "localhost" || h === "127.0.0.1" ? "127.0.0.1" : h;
 }
-
+ 
 function wsUrl(): string {
   const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
   // return `${proto}//${backendHost()}:8080/game/ws`;
@@ -118,6 +118,8 @@ export function useWebSocket(): UseWS {
 
     const url = wsUrl();
     const token = authStorage.getToken();
+    console.log("[DEBUG] token before connect:", token);
+
     const ws = new WebSocket(`${url}?token=${encodeURIComponent(token ?? "")}`);
     singletonSocket = ws;
     socketRef.current = ws;

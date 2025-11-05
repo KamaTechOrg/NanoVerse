@@ -17,7 +17,7 @@ from ..core.settings import HISTORY_JSON_PATH, W, H
 
 SLEEP_TOKEN = 7            
 SLEEP_IDX   = SLEEP_TOKEN-1 
-MAX_GAP_SEC = 30.0        
+MAX_GAP_SEC = 30.0   ##??why need i it?     
 
 def _find_history_file() -> Path:
     candidates = [

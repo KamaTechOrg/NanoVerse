@@ -67,6 +67,7 @@ class WorldService:
                 await asyncio.sleep(5)
             except Exception:
                 logger.exception("Error during flush loop")
+                
 
     async def get_spawn_position(self, user_id: str) -> Tuple[str, Coord]:
         """Return stored or random spawn position for a player."""

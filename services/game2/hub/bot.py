@@ -21,6 +21,8 @@ MAX_GAP_SEC = 30.0
 INFER_TEMPERATURE = 1.3
 INFER_EPSILON = 0.05
 
+
+##??I already have it
 MOVE_DIR = {
     ActionToken.RIGHT: (0, +1),
     ActionToken.LEFT:  (0, -1),
@@ -34,8 +36,8 @@ class BotCtx:
     state: PlayerState
     task: asyncio.Task | None
     h: Optional[torch.Tensor] = None
-    last_token: int = 0
-    last_ts: float = 0.0
+    last_token: int = 0##??why
+    last_ts: float = 0.0##??why
 
 class BotSnapshot(NamedTuple):
     state: PlayerState
@@ -158,12 +160,13 @@ class BotService:
                 if token in MOVE_DIR:
                     dr, dc = MOVE_DIR[token]
                     print(f"[BOT] move {token} → ({dr},{dc})")
-                    result = await self.movement.apply_move(state, dr, dc)
-                    if isinstance(result, PlayerState):
-                        ctx.state = result
-                    elif hasattr(result, "new_state"):
-                        ctx.state = result.new_state
-                        ##???here I have a problem becuase the function apply_move return only true or false,
+                    success = await self.movement.apply_move(state, dr, dc)
+                    if success:
+                        chunk_id, pos = await self.world.get_spawn_position(state.user_id)
+                        print("succees do the move --",chunk_id, pos)
+
+                        ctx.state.chunk_id = chunk_id
+                        ctx.state.pos = pos                  
                     await self.scroll.broadcast_chunk(ctx.state.chunk_id)
                 elif token == ActionToken.COLOR:
                     print("[BOT] color++")
