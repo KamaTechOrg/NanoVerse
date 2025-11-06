@@ -35,13 +35,32 @@ def make_color(r2: int, g2: int, b2: int) -> torch.Tensor:
     v = set2(v, BIT_R0_IDX, BIT_R1_IDX, r2)
     v = set2(v, BIT_G0_IDX, BIT_G1_IDX, g2)
     v = set2(v, BIT_B0_IDX, BIT_B1_IDX , b2)
+    print("user_id color--",v )
+
     return v
 
-def get_player_color_by_user_id(user_id: str | int) -> torch.Tensor:
-    """Stable color per user-id using sha256 digest."""
-    uid = int(user_id)
-    last6 = uid & 0b111111   
+# def get_player_color_by_user_id(user_id: str | int) -> torch.Tensor:
+#     """Stable color per user-id using sha256 digest."""
+#     uid = int(user_id)
+#     last6 = uid & 0b111111   
             
-    first_bit = (uid >> 6) & 1
-    color_val = last6 + (32 * first_bit)
-    return torch.tensor(color_val, dtype= DTYPE)  
+#     first_bit = (uid >> 6) & 1
+#     color_val = last6 + (32 * first_bit)
+#     return torch.tensor(color_val, dtype= DTYPE)  
+
+def get_player_color_by_user_id(uid: str | int) -> torch.Tensor:
+    uid = int(uid)
+
+    base = uid & 0b111111   # take lowest 6 bits
+
+    # Extract 2-bit groups (R,G,B)
+    # layout: R1 R0  G1 G0  B1 B0   (but positions differ in board)
+    b2 = base & 0b11
+    g2 = (base >> 2) & 0b11
+    r2 = (base >> 4) & 0b11
+
+    # Add +1 ("add 32" concept)
+    r2 = (r2 + 1) & 3
+    g2 = (g2 + 1) & 3
+    b2 = (b2 + 1) & 3
+    return make_color(r2, g2, b2)

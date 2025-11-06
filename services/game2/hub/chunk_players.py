@@ -108,12 +108,12 @@ class ChunkPlayers:
             self._load_chunk_from_db(chunk_id)           
         players = []##change it to return also the color ??
         for uid, p in self.chunk_player_map.get(chunk_id, {}).items():
-            color = int(get_player_color_by_user_id(uid).item())
+            # color = int(get_player_color_by_user_id(uid).item())
             players.append({
             "id": uid,
             "row": p["row"],
             "col": p["col"],
-            "color": color
+            # "color": color
         })
         return players
 

@@ -6,13 +6,13 @@ from .types import MatrixPayload, ActionToken
 from .ws_utils import WebSocketUtils
 from .sessions import SessionStore
 from .world import WorldService
-from ..core.settings import W, H, BIT_HAS_LINK_IDX
-from ..core.bits import get_bit, set_bit
+from ..core.settings import W, H, BIT_HAS_LINK_IDX, DTYPE
+from ..core.bits import get_bit
 from ..data.db_scrolls import ScrollDB
 from ..data.db_players import PlayerDB
 from ..data.db_history import PlayerActionHistory
 from .scroll_message import ScrollMessage
-
+import torch
 from ..data.db_chunks import ChunkDB
 
 logger = logging.getLogger(__name__)
@@ -37,18 +37,8 @@ class ScrollService:
 
     def _players_in_chunk_payload(self, chunk_id: str) -> List[dict]:
         rows = self.player_db.list_players_in_chunk(chunk_id)
-        # return [{"id": pid, "row": r, "col": c} for (pid, r, c) in rows]
-        players = []
-        for uid, r, c in rows:
-            from ..core.bits import get_player_color_by_user_id
-            color = int(get_player_color_by_user_id(uid).item())
-            players.append({
-                "id":uid,
-                "row":r,
-                "col":c,
-                "color": color
-            })
-        return players##??mabye I can use at the list wich find in the players_chunk players direclty
+        return [{"id": pid, "row": r, "col": c} for (pid, r, c) in rows]
+       
    
     async def broadcast_chunk(self, chunk_id: str) -> None:
         board = self.world.ensure_chunk(chunk_id)
@@ -70,74 +60,77 @@ class ScrollService:
             self.sessions.pop(ws)
 
     async def maybe_send_scroll_at(self, ws: WebSocket) -> None:
-        sess = self.sessions.get(ws)
-        if not sess:
-            return
-        state = sess.state
-        board = self.world.ensure_chunk(state.chunk_id)
+        try:
+             sess = self.sessions.get(ws)
+             if not sess:
+                 return
+             state = sess.state
+             board = self.world.ensure_chunk(state.chunk_id)    
 
-        cell_under = state.underlying_cell or board[state.pos.row, state.pos.col]
-        current_pos = (state.chunk_id, state.pos.row, state.pos.col)
+             cell = board[state.pos.row, state.pos.col]
+             current_pos = (state.chunk_id, state.pos.row, state.pos.col)       
 
-        if get_bit(cell_under, BIT_HAS_LINK_IDX):
-            if getattr(sess, "last_msg_pos", None) == current_pos:  
-                return
-            msg = await self.scroll_db.load_scroll(state.chunk_id, state.pos.row, state.pos.col)
-            if msg:
-                content = msg["content"] if isinstance(msg, dict) else getattr(msg, "content", str(msg))
-                await WebSocketUtils.send_json(ws, {
-                    "type": "announcement",
-                    "data": {"text": content}
-                })
-                sess.last_msg_pos = current_pos
-                return
-        sess.last_msg_pos = None
-
+             if get_bit(cell, BIT_HAS_LINK_IDX):
+                 if getattr(sess, "last_msg_pos", None) == current_pos:  
+                     return
+                 msg = await self.scroll_db.load_scroll(state.chunk_id, state.pos.row, state.pos.col)
+                 if msg:
+                     content = msg["content"] if isinstance(msg, dict) else getattr(msg, "content", str(msg))
+                     await WebSocketUtils.send_json(ws, {
+                         "type": "announcement",
+                         "data": {"text": content}
+                     })
+                     sess.last_msg_pos = current_pos
+                     return
+             sess.last_msg_pos = None
+        except Exception as e:
+            print("error---", e)
 
     async def write_scroll(self, ws: WebSocket, content: str) -> None:
-        sess = self.sessions.get(ws)
-        if not sess:
-            return
-        state = sess.state
-        board = self.world.ensure_chunk(state.chunk_id)
-
-        existing = await self.scroll_db.load_scroll(state.chunk_id, state.pos.row, state.pos.col)
-        if existing or get_bit(board[state.pos.row, state.pos.col], BIT_HAS_LINK_IDX):
-            await WebSocketUtils.send_json(ws, {
-                "type": "error",
-                "code": "SPACE_OCCUPIED",
-                "message": "This spot already has a message!",
-            })
-            return
-
-        scroll = ScrollMessage(
-            content=content,
-            author=sess.state.user_id or "unknown",
-            chunk_id=state.chunk_id,
-            position=(state.pos.row, state.pos.col),
-        )
-
-        await self.scroll_db.save_scroll(scroll)
-
-        board[state.pos.row, state.pos.col] = set_bit(
-            board[state.pos.row, state.pos.col], BIT_HAS_LINK_IDX, True
-        )
-        state.underlying_cell = set_bit(state.underlying_cell, BIT_HAS_LINK_IDX, True)
-
-        self.chunk_db.save_chunk(state.chunk_id, board)
-
         try:
-            self.player_action_history.append_player_action(
-                sess.state.user_id,
-                state.chunk_id,
-                ActionToken.DM,
-                board,
+            sess = self.sessions.get(ws)
+            if not sess:
+                return
+            state = sess.state
+            board = self.world.ensure_chunk(state.chunk_id)
+
+            existing = await self.scroll_db.load_scroll(state.chunk_id, state.pos.row, state.pos.col)
+            if existing or get_bit(board[state.pos.row, state.pos.col], BIT_HAS_LINK_IDX):
+                await WebSocketUtils.send_json(ws, {
+                    "type": "error",
+                    "code": "SPACE_OCCUPIED",
+                    "message": "This spot already has a message!",
+                })
+                return
+
+            scroll = ScrollMessage(
+                content=content,
+                author=sess.state.user_id or "unknown",
+                chunk_id=state.chunk_id,
+                position=(state.pos.row, state.pos.col),
             )
+
+            await self.scroll_db.save_scroll(scroll)
+            v = int(board[state.pos.row, state.pos.col].item())
+            v = v | (1 << 6)
+            board[state.pos.row, state.pos.col] = torch.tensor(v, dtype=DTYPE)
+
+            self.chunk_db.save_chunk(state.chunk_id, board)
+
+            try:
+                self.player_action_history.append_player_action(
+                    sess.state.user_id,
+                    state.chunk_id,
+                    ActionToken.DM,
+                    board,
+                )
+            except Exception as e:
+                logger.warning("Failed to append history: %s", e)
+
+            await self.broadcast_chunk(state.chunk_id)
+
+            notice = {"type": "announcement", "data": {"text": "A player hid a treasure"}}
+            for target_ws in list(self.sessions.watchers(state.chunk_id)):
+                await WebSocketUtils.send_json(target_ws, notice)
         except Exception as e:
-            logger.warning("Failed to append history: %s", e)
-
-        await self.broadcast_chunk(state.chunk_id)
-
-        notice = {"type": "announcement", "data": {"text": "A player hid a treasure"}}
-        for target_ws in list(self.sessions.watchers(state.chunk_id)):
-            await WebSocketUtils.send_json(target_ws, notice)
+            print("error in write the message: ",e)

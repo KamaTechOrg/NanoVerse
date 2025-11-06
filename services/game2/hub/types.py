@@ -28,9 +28,6 @@ class PlayerState:
     user_id: str
     chunk_id: str
     pos: Coord
-    visible_cell: torch.Tensor
-    underlying_cell: torch.Tensor
-    color: torch.Tensor
 
 class MatrixPayload(TypedDict):
     """Payload for sending board matrix updates to clients."""

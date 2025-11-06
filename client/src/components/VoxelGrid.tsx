@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { Wifi, WifiOff, Users, Gamepad2, MessageCircle, X, HelpCircle } from "lucide-react";
 import { authStorage } from "../utils/auth";
@@ -20,7 +18,7 @@ type PlayerInChunk = {
   id: string;
   row: number;
   col: number;
-  color: number; // ✅ now received from the server
+  color: number;
 };
 
 const SYSTEM_TREASURE = "A player hid a treasure";
@@ -78,7 +76,7 @@ const VoxelGrid: React.FC = () => {
     return () => clearTimeout(t);
   }, [quoteText]);
 
-  // Handle server messages
+  // ✅ Handle server messages
   useEffect(() => {
     const handleGameUpdate = (ev: CustomEvent) => {
       const data = ev.detail;
@@ -101,7 +99,6 @@ const VoxelGrid: React.FC = () => {
           window.dispatchEvent(new Event("chunkChanged"));
         }
 
-        // ✅ Clear chat if alone in chunk
         if (newPlayers.length <= 1) {
           window.dispatchEvent(new Event("clearChat"));
         }
@@ -128,23 +125,41 @@ const VoxelGrid: React.FC = () => {
     return () => window.removeEventListener("game-update", handleGameUpdate as EventListener);
   }, []);
 
-  const decodeColor = (v: number) => {
-    // Extract only the color bits (0–63)
-    const colorCode = v & 0b111111;
-    // Shift bits up so they align with the original 2–7 layout
-    const shifted = colorCode << 2;
-    const getBit = (x: number, bit: number) => (x >> bit) & 1;
-    const get2 = (x: number, b0: number, b1: number) =>
-      (getBit(x, b1) << 1) | getBit(x, b0);
-    const r2 = get2(shifted, 2, 5);
-    const g2 = get2(shifted, 3, 6);
-    const b2 = get2(shifted, 4, 7);
-    const map = [0, 85, 170, 255];
-    return `rgb(${map[r2]}, ${map[g2]}, ${map[b2]})`;
-  };
+  //
+  // ✅ Pixel Color Decode (board cells)
+  //
+  function decodePixelColor(v: number): string {
+    const code = v & 0b111111;
+    const R = (code >> 4) & 0b11;
+    const G = (code >> 2) & 0b11;
+    const B = code & 0b11;
+    const map = (x: number) => x * 64;
+    return `rgb(${map(R)}, ${map(G)}, ${map(B)})`;
+  }
 
+  //
+  // ✅ Player color from user_id (6-bit)
+  //
+  function extractBitsFromUserId(id: string) {
+    // id is already a binary string! → "00011001"
+    return parseInt(id, 2) & 0b111111;
+  }
 
-  // Keyboard handling
+  function playerColorFromUserId(uid: string): string {
+    const code = extractBitsFromUserId(uid);
+
+    const R = (code >> 4) & 0b11;
+    const G = (code >> 2) & 0b11;
+    const B = code & 0b11;
+
+    const map = (x: number) => x * 64 + 32; // brighter than board pixels
+
+    return `rgb(${map(R)}, ${map(G)}, ${map(B)})`;
+  }
+
+  //
+  // ✅ Keyboard handling
+  //
   const handleKeyPress = useCallback(
     (event: KeyboardEvent) => {
       if (!isConnected) return;
@@ -155,6 +170,7 @@ const VoxelGrid: React.FC = () => {
 
       const key = event.key.toLowerCase();
       let action = "";
+
       switch (key) {
         case "arrowup":
         case "w":
@@ -173,6 +189,7 @@ const VoxelGrid: React.FC = () => {
         case "c":
           sendCommand("c"); action = "Color Changed"; break;
       }
+
       if (action) {
         setLastAction(action);
         setTimeout(() => setLastAction(""), 1500);
@@ -188,7 +205,9 @@ const VoxelGrid: React.FC = () => {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [handleKeyPress]);
 
-  // Render grid background (static environment)
+  //
+  // ✅ GRID RENDER
+  //
   const renderGrid = () => {
     if (!gameState) return null;
     const cells: JSX.Element[] = [];
@@ -197,16 +216,8 @@ const VoxelGrid: React.FC = () => {
       for (let c = 0; c < gameState.w; c++) {
         const i = r * gameState.w + c;
         const v = gameState.data[i];
-        // const getBit = (x: number, bit: number) => (x >> bit) & 1;
-        // const get2 = (x: number, b0: number, b1: number) =>
-        //   (getBit(x, b1) << 1) | getBit(x, b0);
-        // const r2 = get2(v, 2, 5);
-        // const g2 = get2(v, 3, 6);
-        // const b2 = get2(v, 4, 7);
-        // const blank = r2 === 0 && g2 === 0 && b2 === 0;
-        // const map = [0, 85, 170, 255];
-        // const color = `rgb(${map[r2]}, ${map[g2]}, ${map[b2]})`;
-        const color = decodeColor(v);
+
+        const color = decodePixelColor(v);
         const blank = (v & 0b111111) === 0;
 
         cells.push(
@@ -221,19 +232,12 @@ const VoxelGrid: React.FC = () => {
       }
     }
 
-    // ✅ Add player overlay with real color
-    // const map = [0, 85, 170, 255];
-    // const playerDivs = players.map((p) => {
-    //   const v = p.color;
-    //   const getBit = (x: number, bit: number) => (x >> bit) & 1;
-    //   const get2 = (x: number, b0: number, b1: number) =>
-    //     (getBit(x, b1) << 1) | getBit(x, b0);
-    //   const r2 = get2(v, 2, 5);
-    //   const g2 = get2(v, 3, 6);
-    //   const b2 = get2(v, 4, 7);
-    //   const color = `rgb(${map[r2]}, ${map[g2]}, ${map[b2]})`;
+    //
+    // ✅ Player overlays
+    //
     const playerDivs = players.map((p) => {
-      const color = decodeColor(p.color);
+      const color = playerColorFromUserId(p.id);
+      console.log(`[PlayerColor] id=${p.id} → color=${color}`);
 
       return (
         <div
@@ -267,6 +271,9 @@ const VoxelGrid: React.FC = () => {
     );
   };
 
+  //
+  // ✅ Chat players
+  //
   const enrichedPlayers = useMemo(() => {
     const chunkId = gameState?.chunk_id ?? sessionStorage.getItem("current_chunk_id") ?? null;
     return players.map((p) => ({
@@ -279,6 +286,9 @@ const VoxelGrid: React.FC = () => {
 
   const myId = authStorage.getUser()?.id ?? "";
 
+  //
+  // ✅ UI
+  //
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-x-hidden">
       <div className="container mx-auto px-4 pt-4 sm:pt-8">
@@ -294,8 +304,9 @@ const VoxelGrid: React.FC = () => {
         {/* Status bar */}
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6">
           <div
-            className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm ${isConnected ? "bg-green-500/20 text-green-300" : "bg-red-500/20 text-red-300"
-              }`}
+            className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm ${
+              isConnected ? "bg-green-500/20 text-green-300" : "bg-red-500/20 text-red-300"
+            }`}
           >
             {isConnected ? <Wifi size={16} /> : <WifiOff size={16} />}
             <span className="font-medium hidden sm:inline">
@@ -363,14 +374,16 @@ const VoxelGrid: React.FC = () => {
             <ChatRoot
               onClose={() => setShowChat(false)}
               playerId={myId}
-              currentChunkId={gameState?.chunk_id ?? sessionStorage.getItem("current_chunk_id") ?? null}
+              currentChunkId={
+                gameState?.chunk_id ?? sessionStorage.getItem("current_chunk_id") ?? null
+              }
               playersInChunk={enrichedPlayers}
             />
           </div>
         </>
       )}
 
-      {/* Floating chat button */}
+      {/* Chat button */}
       <button
         onClick={() => setShowChat((prev) => !prev)}
         className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 rounded-full p-3 sm:p-3.5 bg-black/80 text-white shadow-lg hover:bg-black transition-transform hover:scale-110"

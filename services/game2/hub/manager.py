@@ -2,7 +2,6 @@ from __future__ import annotations
 import asyncio
 import logging
 from fastapi import WebSocket
-
 from .types import MatrixPayload
 from .auth_utils import AuthUtils
 from .sessions import SessionStore, PlayerSession
@@ -74,7 +73,7 @@ class Hub:
              remaining = self.sessions.sockets_for_user(user_id)
             
              if not remaining:  
-                 await self.world.despawn_player(sess.state) 
+                 self.world.despawn_player(sess.state) 
                  self.bots.start(user_id, sess.state)
                  print("start the bot")
          except Exception as e:

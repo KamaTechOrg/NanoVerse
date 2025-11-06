@@ -8,11 +8,6 @@ class BoardUtils:
     """Provides helper methods for board geometry: checking bounds, emptiness, edges, and random spawn cells."""
    
     @staticmethod
-    def is_empty(board: torch.Tensor, r: int, c: int) -> bool:
-          return board[r, c].item() == 0
-
-
-    @staticmethod
     def in_bounds(r: int, c: int) -> bool:
         return 0 <= r < H and 0 <= c < W
      
@@ -35,12 +30,3 @@ class BoardUtils:
         if direction == "left":
             return Coord(state.pos.row, W - 1)
         return Coord(state.pos.row, 0)
-
-    @staticmethod
-    def random_empty_cell(board: torch.Tensor) -> Coord:
-        """Find a random empty cell on the board."""
-        for _ in range(4096):
-            r, c = random.randrange(H), random.randrange(W)
-            if BoardUtils.is_empty(board, r, c):
-                return Coord(r, c)
-        return Coord(H // 2, W // 2)

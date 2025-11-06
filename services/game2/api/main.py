@@ -88,6 +88,8 @@ async def _handle_command(ws: WebSocket, data: IncomingMsg) -> None:
 @app.websocket("/ws")
 async def ws_endpoint(ws: WebSocket) -> None:
     """Main WebSocket entrypoint handling both game and chat traffic."""
+    print("here")
+
     await ws.accept()
     await hub.connect(ws)
     

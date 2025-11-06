@@ -5,7 +5,7 @@ import torch
 from .types import Coord, PlayerState, Direction
 from .board_utils import BoardUtils
 from ..core.settings import W, H, DTYPE
-from ..core.bits import get_player_color_by_user_id
+# from ..core.bits import get_player_color_by_user_id
 from ..data.db_chunks import ChunkDB
 from ..data.db_players import PlayerDB
 from ..data.db_history import  PlayerActionHistory
@@ -77,54 +77,37 @@ class WorldService:
             board = self.ensure_chunk(chunk_id)
             return chunk_id, Coord(row, col)
         board = self.ensure_chunk(self.root_chunk_id)
-        return self.root_chunk_id, BoardUtils.random_empty_cell(board)
+        
+        import random
+        for _ in range(4096):#find empty cell in the root chunk
+            r, c = random.randrange(H), random.randrange(W)
+            if self.chunk_players.is_cell_free(self.root_chunk_id, r, c):
+                return self.root_chunk_id, Coord(r,c)
+         
+        return Coord(H // 2, W // 2)
+ 
       
 
     async def spawn_player(self, user_id: str, chunk_id: str, spawn: Coord) -> PlayerState:
-           """Spawn player into chunk, assigning color directly if not already placed."""
-           color = get_player_color_by_user_id(user_id)##??I think that I can delete it
-           lock = self._lock_for(chunk_id)
-
-           async with lock:
-               board = self.ensure_chunk(chunk_id)
-
-               if BoardUtils.is_empty(board, spawn.row, spawn.col):##??I think that I can remove all this condition and from the player_state, the color, under and visible
-                   underlying = torch.zeros_like(board[spawn.row, spawn.col])
-                #    board[spawn.row, spawn.col] = color
-                
-                   self._mark_dirty(chunk_id)
-               else:    
-                   underlying = board[spawn.row, spawn.col].clone()
-   
-           self.player_db.upsert(user_id, chunk_id, spawn.row, spawn.col)
-           
+           board = self.ensure_chunk(chunk_id)           
            return PlayerState(
                user_id=user_id,
                chunk_id=chunk_id,
                pos=spawn,
-               visible_cell=color,##??I don't need the visible cell here??
-               underlying_cell=underlying,##??I think that now I don't need the color and the underlign here
-               color=color,
            )
                     
                      
-    async def despawn_player(self, state: PlayerState) -> None:
+    def despawn_player(self, state: PlayerState) -> None:#mabye I can dlete this function??
         """When player disconnects."""
-        lock = self._lock_for(state.chunk_id)##??I think that I can dlete also this function
-        async with lock:
-            board = self.ensure_chunk(state.chunk_id)
-            # board[state.pos.row, state.pos.col] = state.underlying_cell
-            self._mark_dirty(state.chunk_id)
-            self.chunk_db.save_chunk(state.chunk_id, board)
         self.player_db.upsert(state.user_id, state.chunk_id, state.pos.row, state.pos.col)
-        self.maybe_unload_chunk(state.chunk_id)
+        # self.maybe_unload_chunk(state.chunk_id)
 
-    def maybe_unload_chunk(self, chunk_id: str) -> None:
-        """Unload chunk from memory if no players remain."""
-        players = self.chunk_players.get_players_in_chunk(chunk_id)
-        if not players and chunk_id in self._chunks:
-            del self._chunks[chunk_id]
-            logger.info(f"Unloaded chunk {chunk_id} from memory")
+    # def maybe_unload_chunk(self, chunk_id: str) -> None:##??I can't do this function becuase I have the bots
+    #     """Unload chunk from memory if no players remain."""
+    #     players = self.chunk_players.get_players_in_chunk(chunk_id)
+    #     if not players and chunk_id in self._chunks:
+    #         del self._chunks[chunk_id]
+    #         logger.info(f"Unloaded chunk {chunk_id} from memory")
    
     @staticmethod
     def neighbor_chunk_id(chunk_id: str, direction: Direction) -> str:
