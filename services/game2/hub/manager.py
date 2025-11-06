@@ -87,11 +87,13 @@ class Hub:
         if not sess:
             return
         state = sess.state
+        board_before = self.world.ensure_chunk(state.chunk_id).clone()
+        players_before = self.chunk_players.get_players_in_chunk(state.chunk_id)
+        
+        self.world.player_actions_history.record_player_action(state.user_id, 
+                                                               state.chunk_id, dr, dc, board_before, players= players_before)
+        
         moved = await self.movement.apply_move(state, dr, dc)
-        board = self.world.ensure_chunk(state.chunk_id)
-        players_now = self.chunk_players.get_players_in_chunk(state.chunk_id)
-        self.world.player_actions_history.record_player_action(state.user_id, state.chunk_id,dr,dc,board,
-                players = players_now)
         if moved.old_chunk_id and moved.old_chunk_id != state.chunk_id:
             self.sessions.update_watchers_after_chunk_change(state.user_id, moved.old_chunk_id, state.chunk_id)
             await self.scrolls.broadcast_chunk(state.chunk_id)
@@ -131,15 +133,16 @@ class Hub:
         sess = self.sessions.get(ws)
         if not sess:
             return 
+    
+        board_before = self.world.ensure_chunk(sess.state.chunk_id).clone()
+        players_before = self.chunk_players.get_players_in_chunk(sess.state.chunk_id)
+        
+        self.world.player_actions_history.append_player_action(
+            sess.state.user_id,
+            sess.state.chunk_id,
+            ActionToken.COLOR,
+            board_before,
+            players_before
+        )
         self.color_service.color_plus_plus(sess.state)
         await self.scrolls.broadcast_chunk(sess.state.chunk_id)
-        players = self.chunk_players.get_players_in_chunk(chunk_id= sess.state.chunk_id)
-        board = self.world.ensure_chunk(sess.state.chunk_id)
-        self.world.player_actions_history.append_player_action(
-                    sess.state.user_id,
-                    sess.state.chunk_id,
-                    ActionToken.COLOR,
-                    board, 
-                   players
-                )
-        

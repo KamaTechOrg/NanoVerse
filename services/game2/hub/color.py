@@ -6,7 +6,7 @@ from ..core.settings import DTYPE
 from ..core.bits import make_color, get_bit, set_bit
 
 from ..core.settings import BIT_HAS_LINK_IDX, DTYPE, BIT_HAS_LINK_IDX
-from ..core.bits import get_player_color_by_user_id, get_player_color_by_user_id, make_color, get_bit,set_bit,with_player
+from ..core.bits import get_player_color_by_user_id, get_player_color_by_user_id, make_color, get_bit,set_bit
 from .types import PlayerState
 from ..data.db_history import ActionToken
 
@@ -17,45 +17,31 @@ class ColorService:
         self.world = world
         self.scroll = scroll
     
-    def color_plus_plus(self, state: PlayerState) -> None:
-        board = self.world.ensure_chunk(state.chunk_id)
-        r0, c0 = state.pos.row, state.pos.col
-
-        vis_val   = int(board[r0, c0].item())
-        under_val = int(state.underlying_cell.item())
-
+    
+    def color_plus_plus(self, state: PlayerState) -> None:##??change that he will store also the has_bit
+        """
+        Increments the color code (0–63) stored directly (not shifted).
+        Example: 0 -> 1 -> 2 -> ... -> 63 -> 0.
+        The board stores this value directly.
+        """
+        
         def _has_link(v: int) -> bool:
             return get_bit(v, BIT_HAS_LINK_IDX)
 
-        def _set_link(v: int, on: bool = True) -> int:
+        def _set_link(v: int, on: bool = True) -> int:##check how can I add it??
             return int(set_bit(v, BIT_HAS_LINK_IDX, on))
 
-        def _decode_code_from_under(v: int) -> int:
-            base = v
-            if _has_link(base):
-                base = _set_link(base, False)
-            for cand in range(64):
-                rr = (cand >> 4) & 3
-                gg = (cand >> 2) & 3
-                bb = cand & 3
-                if int(make_color(rr, gg, bb)) == base:
-                    return cand
-            return 0
+        board = self.world.ensure_chunk(state.chunk_id)
+        r0, c0 = state.pos.row, state.pos.col
 
-        old_code = _decode_code_from_under(under_val)
-        new_code = (old_code + 1) % 64
-        r = (new_code >> 4) & 3
-        g = (new_code >> 2) & 3
-        b =  new_code        & 3
+        val = int(board[r0, c0].item())
+        color_code = val & 0b111111  # use only lower 6 bits
 
-        new_base = int(make_color(r, g, b))
+        new_color_code = (color_code + 1) % 64
+        new_base = (val & ~0b111111) | new_color_code  # replace just bottom 6 bits
 
-        if _has_link(under_val) or _has_link(vis_val):
-            new_base = _set_link(new_base, True)
-
+        board[r0, c0] = torch.tensor(new_base, dtype=DTYPE)
         state.underlying_cell = torch.tensor(new_base, dtype=DTYPE)
-        board[r0, c0]         = torch.tensor(new_base, dtype=DTYPE)
 
-     
         self.world._mark_dirty(state.chunk_id)
-       
+        print(f"[Color++] ({r0},{c0}) code={color_code} → {new_color_code}, stored={new_base}")

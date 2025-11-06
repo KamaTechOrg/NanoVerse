@@ -59,21 +59,6 @@ class ChatManager:
                 await self.broadcast_to_player(partner, {"type": "typing", "typing": [player_id]})
             return
 
-        # if kind == "react":
-        #     msg_id = data.get("messageId")
-        #     reaction = data.get("reaction")
-        #     if not msg_id:
-        #         await ws.send_json({"type": "error", "message": "missing messageId"})
-        #         return
-
-        #     msg = self.messages.get_message_by_id(msg_id)
-        #     if not msg:
-        #         await ws.send_json({"type": "error", "message": "message not found"})
-        #         return
-
-        #     self.messages.update_reaction(msg_id, reaction)
-        #     await ws.send_json({"type": "react", "messageId": msg_id, "my_reaction": reaction})
-        #     return
         if kind == "react":
             msg_id = data.get("messageId")
             reaction = data.get("reaction")
@@ -82,7 +67,7 @@ class ChatManager:
                 return
 
             try:
-                msg_id = int(msg_id)  # ✅ ensure it's int
+                msg_id = int(msg_id) 
             except Exception:
                 await ws.send_json({"type": "error", "message": "invalid message id"})
                 return
@@ -94,7 +79,6 @@ class ChatManager:
 
             self.messages.update_reaction(msg_id, reaction)
 
-            # Notify sender & receiver
             sender = msg["sender_id"]
             receiver = msg["receiver_id"]
 
@@ -110,6 +94,21 @@ class ChatManager:
                 await ws.send_json({"type": "error", "message": "No partner selected"})
                 return
 
+            _, session = self.session_store.find_by_user_id(player_id)
+            if session:
+                try:
+                    state = session.state
+                    board_before = self.world.ensure_chunk(state.chunk_id).clone()
+                    players_before = self.chunk_players.get_players_in_chunk(state.chunk_id)
+                    self.player_actions_history.record_player_send_message(
+                        user_id=player_id,
+                        chunk_id=state.chunk_id,
+                        board=board_before,
+                        players=players_before
+                    )
+                except Exception as e:
+                    print(f"[WARN] Failed to record pre-chat snapshot for {player_id}: {e}")
+
             saved = self.messages.append_message(player_id, partner, text, data.get("timestamp"))
             payload = self.messages._minimal_view(saved) | {"type": "message", "sender": player_id, "to": partner}
 
@@ -122,22 +121,4 @@ class ChatManager:
                 "message": text,
                 "timestamp": saved["timestamp"]
             })
-
-            _, session = self.session_store.find_by_user_id(player_id)
-            if not session:
-                return
-            try:
-                state = session.state
-                board = self.world._chunks.get(state.chunk_id)
-                players_now = self.chunk_players.get_players_in_chunk(state.chunk_id)
-                self.player_actions_history.record_player_send_message(
-                    user_id=player_id,
-                    chunk_id=state.chunk_id,
-                    board=board,
-                    players= players_now
-                )
-            except Exception as e:
-                print(f"[WARN] Failed to record chat action for {player_id}: {e}")
             return
-    
-        await ws.send_json({"type": "error", "message": f"unknown type: {kind}"})

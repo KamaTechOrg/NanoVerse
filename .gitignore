@@ -10,6 +10,8 @@ __pycache__/
 *.pid
 scripts/
 client/public
+
+db_chunks
 # =========================================
 # === VS Code settings ===
 # =========================================

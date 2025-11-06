@@ -1,4 +1,5 @@
 
+
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { Wifi, WifiOff, Users, Gamepad2, MessageCircle, X, HelpCircle } from "lucide-react";
 import { authStorage } from "../utils/auth";
@@ -19,14 +20,12 @@ type PlayerInChunk = {
   id: string;
   row: number;
   col: number;
+  color: number; // ✅ now received from the server
 };
 
 const SYSTEM_TREASURE = "A player hid a treasure";
 
-const QuoteToast: React.FC<{ text: string; onClose: () => void }> = ({
-  text,
-  onClose,
-}) => {
+const QuoteToast: React.FC<{ text: string; onClose: () => void }> = ({ text, onClose }) => {
   return (
     <div
       className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30 max-w-[90vw] sm:max-w-[70vw] w-full sm:w-[680px] px-4 sm:px-5 py-4
@@ -67,7 +66,6 @@ const VoxelGrid: React.FC = () => {
   const [notice, setNotice] = useState<string | null>(null);
   const [showChat, setShowChat] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
-
   const [players, setPlayers] = useState<PlayerInChunk[]>([]);
   const [showMessageInput, setShowMessageInput] = useState(false);
   const [currentMessage, setCurrentMessage] = useState<any>(null);
@@ -80,6 +78,7 @@ const VoxelGrid: React.FC = () => {
     return () => clearTimeout(t);
   }, [quoteText]);
 
+  // Handle server messages
   useEffect(() => {
     const handleGameUpdate = (ev: CustomEvent) => {
       const data = ev.detail;
@@ -102,9 +101,8 @@ const VoxelGrid: React.FC = () => {
           window.dispatchEvent(new Event("chunkChanged"));
         }
 
-        // ✅ NEW: if the player is alone in the chunk → clear chat messages
+        // ✅ Clear chat if alone in chunk
         if (newPlayers.length <= 1) {
-          console.log("[VoxelGrid] Player alone in chunk → clearing chat");
           window.dispatchEvent(new Event("clearChat"));
         }
       }
@@ -120,11 +118,7 @@ const VoxelGrid: React.FC = () => {
       }
 
       if (data.type === "error") {
-        if (data.code === "SPACE_OCCUPIED") {
-          setError("You can't leave a message here — this spot is already taken.");
-        } else {
-          setError(String(data.message || "An error occurred."));
-        }
+        setError(String(data.message || "An error occurred."));
         setShowMessageInput(false);
         setTimeout(() => setError(null), 3000);
       }
@@ -134,16 +128,30 @@ const VoxelGrid: React.FC = () => {
     return () => window.removeEventListener("game-update", handleGameUpdate as EventListener);
   }, []);
 
+  const decodeColor = (v: number) => {
+    // Extract only the color bits (0–63)
+    const colorCode = v & 0b111111;
+    // Shift bits up so they align with the original 2–7 layout
+    const shifted = colorCode << 2;
+    const getBit = (x: number, bit: number) => (x >> bit) & 1;
+    const get2 = (x: number, b0: number, b1: number) =>
+      (getBit(x, b1) << 1) | getBit(x, b0);
+    const r2 = get2(shifted, 2, 5);
+    const g2 = get2(shifted, 3, 6);
+    const b2 = get2(shifted, 4, 7);
+    const map = [0, 85, 170, 255];
+    return `rgb(${map[r2]}, ${map[g2]}, ${map[b2]})`;
+  };
+
+
+  // Keyboard handling
   const handleKeyPress = useCallback(
     (event: KeyboardEvent) => {
       if (!isConnected) return;
 
-      // ✅ אל תזיז את השחקן כשמקלידים בתוך אינפוט/טקסט-אריאה/ContentEditable
       const ae = document.activeElement as HTMLElement | null;
       const tag = ae?.tagName?.toLowerCase();
-      if (tag === "input" || tag === "textarea" || ae?.isContentEditable) {
-        return;
-      }
+      if (tag === "input" || tag === "textarea" || ae?.isContentEditable) return;
 
       const key = event.key.toLowerCase();
       let action = "";
@@ -180,41 +188,83 @@ const VoxelGrid: React.FC = () => {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [handleKeyPress]);
 
+  // Render grid background (static environment)
   const renderGrid = () => {
     if (!gameState) return null;
-
-    const playerSet = new Set(players.map((p) => `${p.row},${p.col}`));
     const cells: JSX.Element[] = [];
 
     for (let r = 0; r < gameState.h; r++) {
       for (let c = 0; c < gameState.w; c++) {
         const i = r * gameState.w + c;
         const v = gameState.data[i];
-        const isPlayer = (v & 1) === 1;
-        const getBit = (x: number, bit: number) => (x >> bit) & 1;
-        const get2 = (x: number, b0: number, b1: number) =>
-          (getBit(x, b1) << 1) | getBit(x, b0);
-        const r2 = get2(v, 2, 5);
-        const g2 = get2(v, 3, 6);
-        const b2 = get2(v, 4, 7);
-        const blank = !isPlayer && r2 === 0 && g2 === 0 && b2 === 0;
-        const map = [0, 85, 170, 255];
-        const color = `rgb(${map[r2]}, ${map[g2]}, ${map[b2]})`;
+        // const getBit = (x: number, bit: number) => (x >> bit) & 1;
+        // const get2 = (x: number, b0: number, b1: number) =>
+        //   (getBit(x, b1) << 1) | getBit(x, b0);
+        // const r2 = get2(v, 2, 5);
+        // const g2 = get2(v, 3, 6);
+        // const b2 = get2(v, 4, 7);
+        // const blank = r2 === 0 && g2 === 0 && b2 === 0;
+        // const map = [0, 85, 170, 255];
+        // const color = `rgb(${map[r2]}, ${map[g2]}, ${map[b2]})`;
+        const color = decodeColor(v);
+        const blank = (v & 0b111111) === 0;
 
-        const isPlayersHere = playerSet.has(`${r},${c}`);
         cells.push(
           <div
             key={`${r}-${c}`}
-            className={`voxel-cell ${isPlayer ? "voxel-player" : "voxel-empty"}`}
+            className="voxel-cell"
             style={{
               backgroundColor: blank ? "transparent" : color,
-              outline: isPlayersHere ? "1px solid rgba(255,255,255,0.6)" : "none",
             }}
           />
         );
       }
     }
-    return cells;
+
+    // ✅ Add player overlay with real color
+    // const map = [0, 85, 170, 255];
+    // const playerDivs = players.map((p) => {
+    //   const v = p.color;
+    //   const getBit = (x: number, bit: number) => (x >> bit) & 1;
+    //   const get2 = (x: number, b0: number, b1: number) =>
+    //     (getBit(x, b1) << 1) | getBit(x, b0);
+    //   const r2 = get2(v, 2, 5);
+    //   const g2 = get2(v, 3, 6);
+    //   const b2 = get2(v, 4, 7);
+    //   const color = `rgb(${map[r2]}, ${map[g2]}, ${map[b2]})`;
+    const playerDivs = players.map((p) => {
+      const color = decodeColor(p.color);
+
+      return (
+        <div
+          key={`player-${p.id}`}
+          className="absolute rounded-[2px] shadow-[0_0_6px_rgba(255,255,255,0.6)]"
+          style={{
+            width: `${100 / gameState.w}%`,
+            height: `${100 / gameState.h}%`,
+            top: `${(p.row / gameState.h) * 100}%`,
+            left: `${(p.col / gameState.w) * 100}%`,
+            backgroundColor: color,
+          }}
+        />
+      );
+    });
+
+    return (
+      <div
+        className="relative"
+        style={{
+          display: "grid",
+          gridTemplateColumns: `repeat(${gameState.w}, 1fr)`,
+          gap: "1px",
+          width: "100%",
+          aspectRatio: "1",
+        }}
+      >
+        {cells}
+        {playerDivs}
+      </div>
+    );
   };
 
   const enrichedPlayers = useMemo(() => {
@@ -234,58 +284,54 @@ const VoxelGrid: React.FC = () => {
       <div className="container mx-auto px-4 pt-4 sm:pt-8">
         <div className="text-center mb-4 sm:mb-6">
           <h1 className="text-3xl sm:text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-          NanoVerse
+            NanoVerse
           </h1>
           <p className="text-slate-300 text-sm sm:text-lg">
             A multiplayer voxel playground where colors come alive
           </p>
         </div>
 
+        {/* Status bar */}
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6">
           <div
-            className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm ${
-              isConnected ? "bg-green-500/20 text-green-300" : "bg-red-500/20 text-red-300"
-            }`}
+            className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-sm ${isConnected ? "bg-green-500/20 text-green-300" : "bg-red-500/20 text-red-300"
+              }`}
           >
-            {isConnected ? <Wifi size={16} className="sm:w-[18px] sm:h-[18px]" /> : <WifiOff size={16} className="sm:w-[18px] sm:h-[18px]" />}
+            {isConnected ? <Wifi size={16} /> : <WifiOff size={16} />}
             <span className="font-medium hidden sm:inline">
               {isConnected ? "Connected" : "Connecting..."}
             </span>
           </div>
 
           <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-blue-500/20 text-blue-300 text-sm">
-            <Users size={16} className="sm:w-[18px] sm:h-[18px]" />
+            <Users size={16} />
             <span className="font-medium">{playerCount}</span>
             <span className="hidden sm:inline">Players</span>
           </div>
 
           <button
             onClick={() => setShowInstructions(true)}
-            className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-amber-500/20 text-amber-300
-                     hover:bg-amber-500/30 transition-all duration-200 transform hover:scale-105 text-sm"
+            className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 transition-all duration-200 transform hover:scale-105 text-sm"
           >
-            <HelpCircle size={16} className="sm:w-[18px] sm:h-[18px]" />
+            <HelpCircle size={16} />
             <span className="font-medium hidden sm:inline">How to Play</span>
           </button>
 
           {lastAction && (
             <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-purple-500/20 text-purple-300 animate-pulse text-sm">
-              <Gamepad2 size={16} className="sm:w-[18px] sm:h-[18px]" />
+              <Gamepad2 size={16} />
               <span className="font-medium">{lastAction}</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* לוח המשחק – תמיד ברוחב מלא */}
+      {/* Board */}
       <div className="flex justify-center items-center px-4 py-4 min-h-[60vh]">
         {gameState ? (
           <div
-            className="voxel-grid bg-slate-800/50 p-3 sm:p-4 rounded-2xl backdrop-blur-sm border border-slate-700/50 shadow-2xl"
+            className="voxel-grid relative bg-slate-800/50 p-3 sm:p-4 rounded-2xl backdrop-blur-sm border border-slate-700/50 shadow-2xl overflow-hidden"
             style={{
-              display: "grid",
-              gridTemplateColumns: `repeat(${gameState.w}, 1fr)`,
-              gap: "1px",
               maxWidth: "min(800px, 90vw)",
               aspectRatio: "1",
               width: "100%",
@@ -303,7 +349,7 @@ const VoxelGrid: React.FC = () => {
         )}
       </div>
 
-      {/* חלונית הצ'אט – יחס קבוע פרופורציונלי לעמוד */}
+      {/* Chat Panel */}
       {showChat && (
         <>
           <div
@@ -311,43 +357,34 @@ const VoxelGrid: React.FC = () => {
             onClick={() => setShowChat(false)}
           />
           <div
-            className="
-              fixed z-[100]
-              right-3 xs:right-4 sm:right-6
-              bottom-16 xs:bottom-14 sm:bottom-12
-              bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto
-              aspect-[4/5]
-              w-[clamp(220px,22vw,380px)]
-              max-h-[600px]
-            "
+            className="fixed z-[100] right-3 xs:right-4 sm:right-6 bottom-16 xs:bottom-14 sm:bottom-12 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto aspect-[4/5] w-[clamp(220px,22vw,380px)] max-h-[600px]"
             style={{ maxHeight: "min(70vh, 600px)" }}
           >
             <ChatRoot
               onClose={() => setShowChat(false)}
               playerId={myId}
-              currentChunkId={
-                gameState?.chunk_id ?? sessionStorage.getItem("current_chunk_id") ?? null
-              }
+              currentChunkId={gameState?.chunk_id ?? sessionStorage.getItem("current_chunk_id") ?? null}
               playersInChunk={enrichedPlayers}
             />
           </div>
         </>
       )}
 
-      {/* כפתור צ'אט צף */}
+      {/* Floating chat button */}
       <button
         onClick={() => setShowChat((prev) => !prev)}
         className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 rounded-full p-3 sm:p-3.5 bg-black/80 text-white shadow-lg hover:bg-black transition-transform hover:scale-110"
         title={showChat ? "Close Chat" : "Open Chat"}
-        aria-label={showChat ? "Close Chat" : "Open Chat"}
       >
-        {showChat ? <X size={20} className="sm:w-[22px] sm:h-[22px]" /> : <MessageCircle size={20} className="sm:w-[22px] sm:h-[22px]" />}
+        {showChat ? <X size={20} /> : <MessageCircle size={20} />}
       </button>
 
-      {/* סטטוס חיבור */}
+      {/* Connection status */}
       <div className="fixed bottom-4 left-4 text-xs sm:text-sm text-slate-300 flex items-center gap-2 sm:gap-3 bg-slate-800/70 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg backdrop-blur-sm border border-slate-700/50 shadow-lg">
         {isConnected ? <Wifi className="text-green-400" size={14} /> : <WifiOff className="text-red-400" size={14} />}
-        <span className="hidden sm:inline">{isConnected ? "Connected" : "Disconnected"} • {playerCount} players</span>
+        <span className="hidden sm:inline">
+          {isConnected ? "Connected" : "Disconnected"} • {playerCount} players
+        </span>
         <span className="sm:hidden">{playerCount}</span>
       </div>
 
@@ -372,6 +409,7 @@ const VoxelGrid: React.FC = () => {
       {showInstructions && <InstructionsModal onClose={() => setShowInstructions(false)} />}
 
       {currentMessage && <MessageBubble message={currentMessage} />}
+
       {error && (
         <div className="fixed top-4 right-4 bg-red-50 text-red-600 px-4 py-3 rounded-lg shadow-lg border border-red-200 text-sm max-w-[90vw] sm:max-w-md">
           {error}

@@ -82,15 +82,15 @@ class WorldService:
 
     async def spawn_player(self, user_id: str, chunk_id: str, spawn: Coord) -> PlayerState:
            """Spawn player into chunk, assigning color directly if not already placed."""
-           color = get_player_color_by_user_id(user_id)
+           color = get_player_color_by_user_id(user_id)##??I think that I can delete it
            lock = self._lock_for(chunk_id)
 
            async with lock:
                board = self.ensure_chunk(chunk_id)
 
-               if BoardUtils.is_empty(board, spawn.row, spawn.col):
+               if BoardUtils.is_empty(board, spawn.row, spawn.col):##??I think that I can remove all this condition and from the player_state, the color, under and visible
                    underlying = torch.zeros_like(board[spawn.row, spawn.col])
-                   board[spawn.row, spawn.col] = color
+                #    board[spawn.row, spawn.col] = color
                 
                    self._mark_dirty(chunk_id)
                else:    
@@ -102,18 +102,18 @@ class WorldService:
                user_id=user_id,
                chunk_id=chunk_id,
                pos=spawn,
-               visible_cell=color,
-               underlying_cell=underlying,
+               visible_cell=color,##??I don't need the visible cell here??
+               underlying_cell=underlying,##??I think that now I don't need the color and the underlign here
                color=color,
            )
                     
                      
     async def despawn_player(self, state: PlayerState) -> None:
         """When player disconnects."""
-        lock = self._lock_for(state.chunk_id)
+        lock = self._lock_for(state.chunk_id)##??I think that I can dlete also this function
         async with lock:
             board = self.ensure_chunk(state.chunk_id)
-            board[state.pos.row, state.pos.col] = state.underlying_cell
+            # board[state.pos.row, state.pos.col] = state.underlying_cell
             self._mark_dirty(state.chunk_id)
             self.chunk_db.save_chunk(state.chunk_id, board)
         self.player_db.upsert(state.user_id, state.chunk_id, state.pos.row, state.pos.col)
@@ -125,7 +125,7 @@ class WorldService:
         if not players and chunk_id in self._chunks:
             del self._chunks[chunk_id]
             logger.info(f"Unloaded chunk {chunk_id} from memory")
-
+   
     @staticmethod
     def neighbor_chunk_id(chunk_id: str, direction: Direction) -> str:
         cx, cy = coords_from_chunk_id(chunk_id)

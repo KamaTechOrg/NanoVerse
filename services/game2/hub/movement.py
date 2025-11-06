@@ -7,7 +7,6 @@ from .board_utils import BoardUtils
 from .world import WorldService
 from ..data.db_chunks import ChunkDB
 from  ..data.db_players import PlayerDB
-from ..core.bits import compose_entry_cells
 from .chunk_players import ChunkPlayers
 @dataclass
 class MoveResult:
@@ -37,41 +36,23 @@ class MovementService:
         return MoveResult(moved, old_chunk_id if moved else None)
     
     async def move_within_chunk(self, state: PlayerState, board: torch.Tensor, nr: int, nc: int) -> None:
-        board[state.pos.row, state.pos.col] = state.underlying_cell
-        new_underlying = board[nr, nc].clone()
-        
-        color = state.color
-        board[nr, nc] = color
         state.pos = Coord(nr, nc)   
         self.chunk_players.update_player_position(state.chunk_id, state.user_id, nr, nc)
-        state.underlying_cell = new_underlying
-        
-    async def _transfer_between_chunks(self, state: PlayerState, direction: Direction) -> Tuple[bool, str]:
+
+           
+    async def _transfer_between_chunks(self, state: PlayerState, direction: Direction) -> Tuple[bool, str]:##??can I delte many things from this function
         """Move player between chunks - keep both chunks in memory."""
         old_chunk_id = state.chunk_id
         old_board = self.world.ensure_chunk(old_chunk_id)
         new_chunk_id = WorldService.neighbor_chunk_id(old_chunk_id, direction)
         new_board = self.world.ensure_chunk(new_chunk_id)
         target = BoardUtils.edge_target_for_direction(state, direction)
-
-     
         if not self.chunk_players.is_cell_free(state.chunk_id, target.row, target.col):
                 return False, old_chunk_id
-            
-        async with self.world._lock_for(old_chunk_id):
-            old_board[state.pos.row, state.pos.col] = state.underlying_cell
-            self.world._mark_dirty(old_chunk_id)
-   
-        async with self.world._lock_for(new_chunk_id):
-            new_under, new_vis = compose_entry_cells(new_board, target.row, target.col, state.color)
-            new_board[target.row, target.col] = new_vis
-            self.world._mark_dirty(new_chunk_id)
-
         state.chunk_id = new_chunk_id
         state.pos = target
-        state.underlying_cell = new_under
-        state.visible_cell = new_vis
-        
+    
         self.chunk_players.move_player_to_chunk(old_chunk_id, new_chunk_id, state.user_id, target.row, target.col)
         return True, old_chunk_id
-        
+
+    

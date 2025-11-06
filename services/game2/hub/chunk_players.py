@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import Dict, List, Optional
 import threading
 from ..data.db_players import PlayerDB
-
+from ..core.bits import get_player_color_by_user_id
 
 class ChunkPlayers:
     """
@@ -105,11 +105,17 @@ class ChunkPlayers:
     def get_players_in_chunk(self, chunk_id: str) -> List[Dict[str, int]]:
         """List all players in the given chunk."""
         if chunk_id not in self.chunk_player_map:
-            self._load_chunk_from_db(chunk_id)
-        return [
-            {"id": uid, "row": p["row"], "col": p["col"]}
-            for uid, p in self.chunk_player_map.get(chunk_id, {}).items()
-        ]
+            self._load_chunk_from_db(chunk_id)           
+        players = []##change it to return also the color ??
+        for uid, p in self.chunk_player_map.get(chunk_id, {}).items():
+            color = int(get_player_color_by_user_id(uid).item())
+            players.append({
+            "id": uid,
+            "row": p["row"],
+            "col": p["col"],
+            "color": color
+        })
+        return players
 
     def is_cell_free(self, chunk_id: str, row: int, col: int) -> bool:
         """Check if the given cell is free (auto-loads chunk from DB if missing)."""

@@ -14,34 +14,6 @@ class MessageService:
         self.db = db
 
 
-    # def append_message(
-    #     self,
-    #     sender_id: str,
-    #     receiver_id: str,
-    #     text: str,
-    #     timestamp: Optional[str] = None,
-    #     quoted_id: Optional[str] = None,
-    # ) -> dict:
-    #     timestamp = timestamp or datetime.utcnow().isoformat() + "Z"
-    #     self.db.add_message(
-    #         sender_id=sender_id,
-    #         receiver_id=receiver_id,
-    #         content=text,
-    #         timestamp=timestamp,
-    #         reaction="none"
-    #     )
-
-    #     msg_id = f"{sender_id}_{receiver_id}_{timestamp}"
-
-    #     return {
-    #         "id": msg_id,
-    #         "from": sender_id,
-    #         "to": receiver_id,
-    #         "message": text,
-    #         "timestamp": timestamp,
-    #         "reaction": "none",
-    #     }
- 
     def append_message(
         self,
         sender_id: str,
