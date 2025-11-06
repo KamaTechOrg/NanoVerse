@@ -137,8 +137,7 @@ class BotService:
             else:
                 pred_idx = int(torch.argmax(probs, dim=0).item())
             token = IDX_TO_TOKEN[pred_idx]
-            # sleep_norm = float(sleep_reg.item())
-            # sleep_sec = max(0.5, min(sleep_norm * MAX_GAP_SEC, 10.0))
+    
             import math
             
             sleep_norm = float(sleep_reg.item())

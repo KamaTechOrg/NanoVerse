@@ -6,7 +6,6 @@ from .types import MatrixPayload
 from .auth_utils import AuthUtils
 from .sessions import SessionStore, PlayerSession
 from .world import WorldService
-from .movement import MovementService
 from .scrolls import ScrollService
 from .bot import BotService
 from .color import ColorService
@@ -20,13 +19,15 @@ class Hub:
     """Main orchestration hub connecting all services.
     Manages player connections, movements, scroll actions, color changes, and bot lifecycle."""
 
-    def __init__(self, world: WorldService, movement: MovementService, 
+    def __init__(self, world: WorldService, movement,#movement service 
                  scrolls: ScrollService, bots: BotService, sessions: SessionStore, 
                  color_service:ColorService, players_db: PlayerDB, chunk_players: ChunkPlayers) -> None:
+        from .movement import MovementService
+
         self.world = world
-        self.movement = movement
+        self.movement: MovementService = movement
         self.scrolls = scrolls
-        self.bots = bots
+        self.bots = bots   
         self.sessions = sessions
         self.color_service = color_service
         

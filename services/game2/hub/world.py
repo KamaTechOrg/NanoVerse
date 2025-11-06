@@ -100,14 +100,7 @@ class WorldService:
     def despawn_player(self, state: PlayerState) -> None:#mabye I can dlete this function??
         """When player disconnects."""
         self.player_db.upsert(state.user_id, state.chunk_id, state.pos.row, state.pos.col)
-        # self.maybe_unload_chunk(state.chunk_id)
-
-    # def maybe_unload_chunk(self, chunk_id: str) -> None:##??I can't do this function becuase I have the bots
-    #     """Unload chunk from memory if no players remain."""
-    #     players = self.chunk_players.get_players_in_chunk(chunk_id)
-    #     if not players and chunk_id in self._chunks:
-    #         del self._chunks[chunk_id]
-    #         logger.info(f"Unloaded chunk {chunk_id} from memory")
+      
    
     @staticmethod
     def neighbor_chunk_id(chunk_id: str, direction: Direction) -> str:

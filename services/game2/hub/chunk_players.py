@@ -2,7 +2,6 @@ from collections import defaultdict
 from typing import Dict, List, Optional
 import threading
 from ..data.db_players import PlayerDB
-from ..core.bits import get_player_color_by_user_id
 
 class ChunkPlayers:
     """
@@ -17,7 +16,7 @@ class ChunkPlayers:
         self.chunk_player_map: Dict[str, Dict[str, Dict[str, int]]] = defaultdict(dict)
         self._lock = threading.Lock()
         self._load_all_from_db()
-
+   
 
     def _load_all_from_db(self):
         """Load all player positions from DB at startup."""
