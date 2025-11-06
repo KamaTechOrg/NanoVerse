@@ -1,0 +1,7 @@
+{
+  "input_chats": "../../data/chats.json",
+  "out_root": "data/users",
+  "history": 6,
+  "train_ratio": 0.9,
+  "users": ["player1"]
+}
