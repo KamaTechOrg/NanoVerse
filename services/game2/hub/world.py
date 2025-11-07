@@ -71,7 +71,7 @@ class WorldService:
 
        while placed < FRUIT_COUNT:
            r = random.randrange(H)
-           c = random.randrange(W)
+           c = random.randrange(W)   
 
            # רק על תא ריק
            if board[r, c].item() == 0:
