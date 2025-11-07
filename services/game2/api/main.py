@@ -41,9 +41,8 @@ scores_db = ScoresDB()
 
 world_service = WorldService(chunk_db, player_db, player_actions_history, chunk_players)
 session_store = SessionStore()
-scroll_service = ScrollService(world_service, session_store, scrolls_db, chunk_db, player_actions_history, player_db)
-
-movement_service = MovementService(world_service, chunk_db, chunk_players, scores_db)
+scroll_service = ScrollService(world_service, session_store, scrolls_db, chunk_db, player_actions_history, player_db, scores_db)  
+movement_service = MovementService(world_service, chunk_db, chunk_players, scores_db, scroll_service)  
 color_service = ColorService(world_service, scroll_service)
 bot_service = BotService(world_service,movement_service,scroll_service,color_service)
 
@@ -85,7 +84,11 @@ async def _handle_command(ws: WebSocket, data: IncomingMsg) -> None:
             await hub.whereami(ws)
     except Exception as e:
         await WebSocketUtils.send_json(ws, {"ok": False, "error": "action_failed", "msg": str(e)})
-
+@app.on_event("startup")
+async def _startup():
+    await scrolls_db.connect()       
+    await scrolls_db.ensure_schema() 
+    
 
 @app.websocket("/ws")
 async def ws_endpoint(ws: WebSocket) -> None:
