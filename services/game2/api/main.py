@@ -24,6 +24,8 @@ from ..hub.chunk_players import ChunkPlayers
 from ..data.db_chat import ChatDB
 from ..chat.chat_manager import  ChatManager
 from ..chat.messages import MessageService
+from services.game2.data.db_scores import ScoresDB
+
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -35,13 +37,13 @@ chunk_db = ChunkDB()
 player_actions_history = PlayerActionHistory()
 scrolls_db = ScrollDB()
 chunk_players = ChunkPlayers(player_db)
-
+scores_db = ScoresDB()
 
 world_service = WorldService(chunk_db, player_db, player_actions_history, chunk_players)
 session_store = SessionStore()
 scroll_service = ScrollService(world_service, session_store, scrolls_db, chunk_db, player_actions_history, player_db)
 
-movement_service = MovementService(world_service, chunk_db, chunk_players)
+movement_service = MovementService(world_service, chunk_db, chunk_players, scores_db)
 color_service = ColorService(world_service, scroll_service)
 bot_service = BotService(world_service,movement_service,scroll_service,color_service)
 

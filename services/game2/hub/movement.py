@@ -8,6 +8,10 @@ from .world import WorldService
 from ..data.db_chunks import ChunkDB
 from  ..data.db_players import PlayerDB
 from .chunk_players import ChunkPlayers
+
+from ..core.settings import DTYPE, BIT_FRUIT_IDX
+from ..core.bits import get_bit
+from ..data.db_scores import ScoresDB
 @dataclass
 class MoveResult:
    moved: bool
@@ -16,11 +20,13 @@ class MoveResult:
 class MovementService:
     """Handles player movement logic both within and between chunks.
      the board state and player database accordingly."""
-    def __init__(self, world: WorldService, chunk_db: ChunkDB, chunk_players: ChunkPlayers) -> None:
+    def __init__(self, world: WorldService, chunk_db: ChunkDB, chunk_players: ChunkPlayers, scores_db: ScoresDB) -> None:
         self.world = world
         
         self.chunk_db = chunk_db
         self.chunk_players = chunk_players
+        self.scores_db =scores_db
+        
  
     async def apply_move(self, state: PlayerState, dr: int, dc: int) -> MoveResult:
         nr, nc = state.pos.row + dr, state.pos.col + dc
@@ -35,11 +41,28 @@ class MovementService:
         moved, old_chunk_id = await self._transfer_between_chunks(state, direction)
         return MoveResult(moved, old_chunk_id if moved else None)
     
+    
+    def check_has_fruit(self, state, board, nr, nc):
+         cell_val = int(board[nr, nc].item())
+         if get_bit(cell_val, BIT_FRUIT_IDX):
+            new_val = cell_val & ~(1 << BIT_FRUIT_IDX)
+            board[nr, nc] = torch.tensor(new_val, dtype=DTYPE)
+            self.chunk_db.save_chunk(state.chunk_id, board)
+            self.scores_db.add_score(state.user_id, 5)
+        
     async def move_within_chunk(self, state: PlayerState, board: torch.Tensor, nr: int, nc: int) -> None:
         state.pos = Coord(nr, nc)   
         self.chunk_players.update_player_position(state.chunk_id, state.user_id, nr, nc)
 
-           
+        self.check_has_fruit(state, board,nr, nc)
+        # cell_val = int(board[nr, nc].item())
+        # if get_bit(cell_val, BIT_FRUIT_IDX):
+        #     new_val = cell_val & ~(1 << BIT_FRUIT_IDX)
+        #     board[nr, nc] = torch.tensor(new_val, dtype=DTYPE)
+        #     self.chunk_db.save_chunk(state.chunk_id, board)
+        #     self.scores_db.add_score(state.user_id, 5)
+            
+            
     async def _transfer_between_chunks(self, state: PlayerState, direction: Direction) -> Tuple[bool, str]:##??can I delte many things from this function
         """Move player between chunks - keep both chunks in memory."""
         old_chunk_id = state.chunk_id
@@ -51,6 +74,7 @@ class MovementService:
                 return False, old_chunk_id
         state.chunk_id = new_chunk_id
         state.pos = target
+        self.check_has_fruit(state, new_board,target.row, target.col)
     
         self.chunk_players.move_player_to_chunk(old_chunk_id, new_chunk_id, state.user_id, target.row, target.col)
         return True, old_chunk_id

@@ -4,13 +4,15 @@ from typing import Dict, Tuple, Set
 import torch
 from .types import Coord, PlayerState, Direction
 from .board_utils import BoardUtils
-from ..core.settings import W, H, DTYPE
+from ..core.settings import W, H, DTYPE, BIT_FRUIT_IDX
+from ..core.bits import get_bit
 # from ..core.bits import get_player_color_by_user_id
 from ..data.db_chunks import ChunkDB
 from ..data.db_players import PlayerDB
 from ..data.db_history import  PlayerActionHistory
 from .chunk_players import ChunkPlayers
 from ..core.ids import chunk_id_from_coords, coords_from_chunk_id
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -47,12 +49,40 @@ class WorldService:
             return self._chunks[chunk_id]
         try:
             board = self.chunk_db.load_chunk(chunk_id)
+            is_new = False
         except FileNotFoundError:
             board = torch.zeros((H, W), dtype=DTYPE)
-            self.chunk_db.save_chunk(chunk_id, board)
+            # self.chunk_db.save_chunk(chunk_id, board)
+            is_new = True
+          
+            
         self._chunks[chunk_id] = board
+        if is_new:
+            self._scatter_fruits(chunk_id, board)
         return board
 
+
+    
+    def _scatter_fruits(self, chunk_id: str, board: torch.Tensor):
+       import random
+
+       FRUIT_COUNT = 5
+       placed = 0
+
+       while placed < FRUIT_COUNT:
+           r = random.randrange(H)
+           c = random.randrange(W)
+
+           # רק על תא ריק
+           if board[r, c].item() == 0:
+               # ✅ הפעל ביט 7
+               v = int(board[r, c].item()) | (1 << 7)
+               board[r, c] = torch.tensor(v, dtype=DTYPE)
+               placed += 1
+
+       # ✅ שמירת השינויים בדיסק
+       self.chunk_db.save_chunk(chunk_id, board)
+           
     async def _flush_loop(self):
         """Periodically write all dirty chunks to disk."""
         while True:

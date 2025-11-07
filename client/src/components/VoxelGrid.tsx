@@ -539,8 +539,10 @@ const VoxelGrid: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [quoteText, setQuoteText] = useState<string | null>(null);
 
-  const CHUNK_W = gameState?.w
-  const CHUNK_H = gameState?.h
+  // ✅ Detect fruit from the encoded pixel value (bit 7)
+  function pixelHasFruit(v: number): boolean {
+    return ((v >> 7) & 1) === 1;
+  }
 
   useEffect(() => {
     if (!quoteText) return;
@@ -690,15 +692,41 @@ const VoxelGrid: React.FC = () => {
         const color = decodePixelColor(v);
         const blank = (v & 0b111111) === 0;
 
+        const hasFruit = pixelHasFruit(v);
+        if (hasFruit){console.log("find a fruit!!!");
+        }
+
         cells.push(
           <div
             key={`${r}-${c}`}
-            className="voxel-cell"
+            className="voxel-cell relative"
             style={{
               backgroundColor: blank ? "transparent" : color,
             }}
-          />
+          >
+            {hasFruit && (
+              <div
+                className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                style={{
+                  fontSize: "26px",
+                  transform: "scale(1.2)",
+                }}
+              >
+                🍎
+              </div>
+            )}
+          </div>
         );
+
+        // cells.push(
+        //   <div
+        //     key={`${r}-${c}`}
+        //     className="voxel-cell"
+        //     style={{
+        //       backgroundColor: blank ? "transparent" : color,
+        //     }}
+        //   />
+        // );
       }
     }
 
