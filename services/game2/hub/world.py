@@ -66,22 +66,20 @@ class WorldService:
     def _scatter_fruits(self, chunk_id: str, board: torch.Tensor):
        import random
 
-       FRUIT_COUNT = 5
+       FRUIT_COUNT = 5#put at the setting file
        placed = 0
+       
+       FRUIT_VALUE = 2 ** BIT_FRUIT_IDX
 
        while placed < FRUIT_COUNT:
            r = random.randrange(H)
            c = random.randrange(W)   
 
-           # רק על תא ריק
            if board[r, c].item() == 0:
-               # ✅ הפעל ביט 7
-               v = int(board[r, c].item()) | (1 << 7)
-               board[r, c] = torch.tensor(v, dtype=DTYPE)
+               board[r, c] = torch.tensor(FRUIT_VALUE, dtype=DTYPE)
                placed += 1
 
-       # ✅ שמירת השינויים בדיסק
-       self.chunk_db.save_chunk(chunk_id, board)
+       self.chunk_db.save_chunk(chunk_id, board)## mabye enough to mark as dirty
            
     async def _flush_loop(self):
         """Periodically write all dirty chunks to disk."""

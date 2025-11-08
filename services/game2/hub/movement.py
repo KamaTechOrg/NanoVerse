@@ -42,26 +42,20 @@ class MovementService:
         return MoveResult(moved, old_chunk_id if moved else None)
     
     
-    def check_has_fruit(self, state, board, nr, nc):
+    def check_has_fruit(self, state:PlayerState, board, nr, nc):
          cell_val = int(board[nr, nc].item())
-         if get_bit(cell_val, BIT_FRUIT_IDX):
-            new_val = cell_val & ~(1 << BIT_FRUIT_IDX)
-            board[nr, nc] = torch.tensor(new_val, dtype=DTYPE)
-            self.chunk_db.save_chunk(state.chunk_id, board)
+    
+         if cell_val == 32:
+            board[nr, nc] = torch.tensor(0, dtype=DTYPE)
+            self.chunk_db.save_chunk(state.chunk_id,board)
             self.scores_db.add_score(state.user_id, 5)
-        
+            
     async def move_within_chunk(self, state: PlayerState, board: torch.Tensor, nr: int, nc: int) -> None:
         state.pos = Coord(nr, nc)   
         self.chunk_players.update_player_position(state.chunk_id, state.user_id, nr, nc)
 
         self.check_has_fruit(state, board,nr, nc)
-        # cell_val = int(board[nr, nc].item())
-        # if get_bit(cell_val, BIT_FRUIT_IDX):
-        #     new_val = cell_val & ~(1 << BIT_FRUIT_IDX)
-        #     board[nr, nc] = torch.tensor(new_val, dtype=DTYPE)
-        #     self.chunk_db.save_chunk(state.chunk_id, board)
-        #     self.scores_db.add_score(state.user_id, 5)
-            
+    
             
     async def _transfer_between_chunks(self, state: PlayerState, direction: Direction) -> Tuple[bool, str]:##??can I delte many things from this function
         """Move player between chunks - keep both chunks in memory."""

@@ -541,7 +541,10 @@ const VoxelGrid: React.FC = () => {
 
   // ✅ Detect fruit from the encoded pixel value (bit 7)
   function pixelHasFruit(v: number): boolean {
-    return ((v >> 7) & 1) === 1;
+    // return ((v >> 7) & 1) === 1;
+    if (v == 32) return true
+    return false
+
   }
 
   useEffect(() => {
@@ -693,7 +696,8 @@ const VoxelGrid: React.FC = () => {
         const blank = (v & 0b111111) === 0;
 
         const hasFruit = pixelHasFruit(v);
-        if (hasFruit){console.log("find a fruit!!!");
+        if (hasFruit) {
+          console.log("find a fruit!!!");
         }
 
         cells.push(
