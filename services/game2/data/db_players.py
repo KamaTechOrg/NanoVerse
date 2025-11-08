@@ -26,7 +26,7 @@ class PlayerDB:
         self.conn.execute("CREATE INDEX IF NOT EXISTS idx_chunk ON players (chunk_id)")
 
 
-m     def upsert(self, user_id: str, chunk_id: str, row: int, col: int) -> None:
+    def upsert(self, user_id: str, chunk_id: str, row: int, col: int) -> None:
         """Insert or update player position."""
         self.conn.execute("""
         INSERT INTO players (user_id, chunk_id, row, col)
