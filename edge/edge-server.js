@@ -138,6 +138,22 @@ const gameProxy = createProxyMiddleware({
   },
 });
 
+
+// === SCORE proxy → game ===
+app.use("/score", createProxyMiddleware({
+  target: GAME_SERVICE_URL,
+  changeOrigin: true,
+  pathRewrite: { "^/score": "/score" },
+  logLevel: "debug",
+  onError(err, req, res) {
+    console.error("[EDGE][/score proxy error]", err.message);
+    if (!res.headersSent) res.status(502).end("Bad gateway");
+  }
+}));
+
+
+
+
 // All HTTP requests to game → require JWT
 app.use('/', (req, res, next) => {
   const upgrade = (req.headers && req.headers.upgrade) || '';

@@ -142,17 +142,23 @@ class ScrollService:
 
     async def on_enter_cell(self, user_id: str, chunk_id: str, row: int, col: int) -> None:
         try:
+            print(f"[ENTER_CELL] user={user_id} chunk={chunk_id} r={row} c={col}")
             msg = await self.scroll_db.load_scroll(chunk_id, row, col)
             if not msg:
+                print("[ENTER_CELL] no scroll found here")
                 return
 
             author_id = (msg.get("author") or msg.get("author_user_id") or "")
             found_by  = msg.get("found_by_user_id")
+            print(f"[ENTER_CELL] author={author_id}, found_by={found_by}")
 
             if author_id == user_id:
+                print("[ENTER_CELL] skipping: player is author")
                 return
 
             updated = await self.scroll_db.mark_found_if_null(msg_id=msg["id"], found_by_user_id=user_id)
+            print(f"[ENTER_CELL] mark_found_if_null -> {updated}")
+
             if updated:
                 self.scores_db.add_score(user_id, 10)
                 self._pending_cleanup[user_id] = (msg["id"], chunk_id, row, col)
