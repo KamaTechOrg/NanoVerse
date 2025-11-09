@@ -232,7 +232,7 @@ def _split_dataset(ds: Dataset, val_ratio: float = 0.2, seed: int = 42):
     return random_split(ds, [n_train, n_val], generator=gen)
 
 def train(
-    epochs: int = 10,
+    epochs: int = 20,
     batch_size: int = 64,
     lr: float = 1e-3,
     device: str | None = None,
@@ -361,7 +361,7 @@ def train(
 
 if __name__ == "__main__":
     train(
-        epochs=10,
+        epochs=20,
         batch_size=64,
         lr=1e-3,
         val_ratio=0.2,

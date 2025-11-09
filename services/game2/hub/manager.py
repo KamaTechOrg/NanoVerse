@@ -59,11 +59,12 @@ class Hub:
             else:
                 chunk_id, spawn = await self.world.get_spawn_position(user_id)
                 state = await self.world.spawn_player(user_id, chunk_id,spawn)
-        
+
+                self.chunk_players.add_player(chunk_id, user_id, spawn.row, spawn.col)
         self.sessions.add(ws, PlayerSession( state=state))
         await self.scrolls.broadcast_chunk(state.chunk_id)
 
-
+   
     async def disconnect(self, ws: WebSocket) -> None:
          try:
              sess = self.sessions.pop(ws)

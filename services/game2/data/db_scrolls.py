@@ -1,14 +1,10 @@
-# services/game2/data/db_scrolls.py
-
+# services/game2/data/db_scrolls.py  
 import aiosqlite
 from pathlib import Path
 from datetime import datetime
 
-# נשתמש ב-DATA_DIR מהמערכת שלך אם קיים
-try:
-    from ..core.settings import DATA_DIR
-except Exception:
-    DATA_DIR = Path("data")
+from ..core.settings import DATA_DIR
+
 
 class ScrollDB:
     """

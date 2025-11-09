@@ -7,7 +7,7 @@ from .settings import (
 
      BIT_R0_IDX, BIT_R1_IDX, BIT_G0_IDX, BIT_G1_IDX, BIT_B0_IDX, BIT_B1_IDX, BIT_HAS_LINK_IDX
 )
-
+    
 def set_bit(v: torch.Tensor, bit: int, one: bool) -> torch.Tensor:
     """Set/Clear single bit on an 8-bit tensor value."""
     mask = torch.tensor(1 << bit, dtype=DTYPE)
@@ -39,22 +39,12 @@ def make_color(r2: int, g2: int, b2: int) -> torch.Tensor:
 
     return v
 
-# def get_player_color_by_user_id(user_id: str | int) -> torch.Tensor:
-#     """Stable color per user-id using sha256 digest."""
-#     uid = int(user_id)
-#     last6 = uid & 0b111111   
-            
-#     first_bit = (uid >> 6) & 1
-#     color_val = last6 + (32 * first_bit)
-#     return torch.tensor(color_val, dtype= DTYPE)  
-
 def get_player_color_by_user_id(uid: str | int) -> torch.Tensor:
     uid = int(uid)
 
     base = uid & 0b111111   # take lowest 6 bits
 
-    # Extract 2-bit groups (R,G,B)
-    # layout: R1 R0  G1 G0  B1 B0   (but positions differ in board)
+    
     b2 = base & 0b11
     g2 = (base >> 2) & 0b11
     r2 = (base >> 4) & 0b11

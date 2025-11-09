@@ -38,7 +38,6 @@ class ScrollService:
         self.player_db = player_db
         self.scores_db = scores_db
 
-        # 🟡 NEW: נשמור מה שצריך לנקות כשהשחקן יעזוב את התא שבו מצא הודעה
         #        map: user_id -> (scroll_id, chunk_id, row, col)
         self._pending_cleanup: Dict[str, Tuple[str, str, int, int]] = {}
 

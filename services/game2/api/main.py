@@ -89,11 +89,11 @@ async def _startup():
     await scrolls_db.connect()       
     await scrolls_db.ensure_schema() 
     
-
+   
 @app.websocket("/ws")
 async def ws_endpoint(ws: WebSocket) -> None:
     """Main WebSocket entrypoint handling both game and chat traffic."""
-    print("here")
+    print("here") 
 
     await ws.accept()
     await hub.connect(ws)

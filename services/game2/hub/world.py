@@ -6,7 +6,6 @@ from .types import Coord, PlayerState, Direction
 from .board_utils import BoardUtils
 from ..core.settings import W, H, DTYPE, BIT_FRUIT_IDX
 from ..core.bits import get_bit
-# from ..core.bits import get_player_color_by_user_id
 from ..data.db_chunks import ChunkDB
 from ..data.db_players import PlayerDB
 from ..data.db_history import  PlayerActionHistory
@@ -41,7 +40,7 @@ class WorldService:
         return self._chunk_locks[chunk_id]
 
     def _mark_dirty(self, chunk_id: str) -> None:
-        self._dirty.add(chunk_id)
+        self._dirty.add(chunk_id)  
 
     def ensure_chunk(self, chunk_id: str) -> torch.Tensor:
         """Ensure chunk is loaded or create a new one."""
@@ -52,10 +51,8 @@ class WorldService:
             is_new = False
         except FileNotFoundError:
             board = torch.zeros((H, W), dtype=DTYPE)
-            # self.chunk_db.save_chunk(chunk_id, board)
             is_new = True
-          
-            
+                    
         self._chunks[chunk_id] = board
         if is_new:
             self._scatter_fruits(chunk_id, board)
@@ -66,7 +63,7 @@ class WorldService:
     def _scatter_fruits(self, chunk_id: str, board: torch.Tensor):
        import random
 
-       FRUIT_COUNT = 5#put at the setting file
+       FRUIT_COUNT = 5
        placed = 0
        
        FRUIT_VALUE = 2 ** BIT_FRUIT_IDX
@@ -107,7 +104,7 @@ class WorldService:
         board = self.ensure_chunk(self.root_chunk_id)
         
         import random
-        for _ in range(4096):#find empty cell in the root chunk
+        for _ in range(4096):
             r, c = random.randrange(H), random.randrange(W)
             if self.chunk_players.is_cell_free(self.root_chunk_id, r, c):
                 return self.root_chunk_id, Coord(r,c)
