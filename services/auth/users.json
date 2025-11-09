@@ -2,43 +2,18 @@
   "users": [
     {
       "id": "00000000",
-      "username": "Esther",
-      "email": "m025863821@gmail.com"
+      "username": "aaa",
+      "email": "aaa@gmail.com"
     },
     {
       "id": "00000001",
-      "username": "Tamar",
-      "email": "tamar48719@gmail.com"
+      "username": "bbb",
+      "email": "bbb@gmail.com"
     },
     {
       "id": "00000010",
-      "username": "aaa",
-      "email": "m025863821@gamil.com"
-    },
-    {
-      "id": "00000011",
-      "username": "bbb",
-      "email": "b0527643823@gmail.com"
-    },
-    {
-      "id": "00000100",
-      "username": "ddd",
-      "email": "m025863821@gamil.c"
-    },
-    {
-      "id": "00000101",
-      "username": "Chani",
-      "email": "c@gmail.com"
-    },
-    {
-      "id": "00000110",
-      "username": "SSS",
-      "email": "4118847@gmail.com"
-    },
-    {
-      "id": "00000111",
-      "username": "RRR",
-      "email": "gage@gmail.com"
+      "username": "ccc",
+      "email": "ccc@gmail.com"
     }
   ]
 }

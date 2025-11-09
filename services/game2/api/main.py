@@ -140,3 +140,12 @@ async def chat_history(me: str, with_id: str):
         "ok":True, 
         "messages":msgs,
     }
+
+@app.get("/score/me")
+async def score_me(user_id: str):
+    return {"user_id": user_id, "score": scores_db.get_score(user_id)}
+
+@app.get("/score/top")
+async def score_top(n: int = 10):
+    top = scores_db.top_n(max(1, n))
+    return {"top": [{"user_id": uid, "score": sc} for uid, sc in top]}
