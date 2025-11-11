@@ -1,113 +1,51 @@
-from __future__ import annotations
+# services/game2/models/bot_gru.py
 import torch
 import torch.nn as nn
-from typing import Optional, Tuple
 
-NUM_ACTIONS = 7
-HIDDEN_DIM = 128
-USER_EMB_DIM = 32
-BOARD_FEAT_DIM = 128
-ACTION_BITS = 8
-TIME_FEAT_DIM = 1
-INPUT_DIM = BOARD_FEAT_DIM + ACTION_BITS + USER_EMB_DIM + TIME_FEAT_DIM
-
-def int_to_8bits(a: int) -> torch.Tensor:
-    bits = [(a >> i) & 1 for i in range(8)]
-    return torch.tensor(bits, dtype=torch.float32).unsqueeze(0)
-
-class SmallBoardCNN(nn.Module):
-    def __init__(self, out_dim=BOARD_FEAT_DIM, in_channels=2):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Conv2d(in_channels, 16, 3, padding=1), nn.ReLU(),
-            nn.Conv2d(16, 32, 3, padding=1), nn.ReLU(),
-            nn.MaxPool2d(2),
-            nn.Conv2d(32, 64, 3, padding=1), nn.ReLU(),
-            nn.MaxPool2d(2),
-            nn.Conv2d(64, 128, 3, padding=1), nn.ReLU(),
-            nn.AdaptiveAvgPool2d((1,1)),
-        )
-        self.proj = nn.Linear(128, out_dim)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = x.float() / 255.0
-        h = self.net(x).flatten(1)
-        return self.proj(h)
+# Game action tokens in your engine are 1..5 (RIGHT=1, LEFT=2, UP=3, DOWN=4, COLOR=5)
+# Model uses 0-based indices: 0..4 for actions; PAD_IDX=5 for padding inside sequences.
+NUM_ACTIONS = 5           # number of real actions (no PAD)
+PAD_IDX     = 5           # padding token index used inside sequences
+VOCAB_SIZE  = NUM_ACTIONS + 1  # 6 (0..5)
+SEQ_LEN     = 100         # history window
+EMB         = 32
+HIDDEN      = 128
 
 class GRUPolicy(nn.Module):
-    def __init__(self, num_users: int):
+    def __init__(self):
         super().__init__()
-        self.user_emb = nn.Embedding(num_users, USER_EMB_DIM)
-        self.cnn = SmallBoardCNN(BOARD_FEAT_DIM, in_channels=2)
-        self.gru = nn.GRU(INPUT_DIM, HIDDEN_DIM, batch_first=True)
-        self.head = nn.Linear(HIDDEN_DIM, NUM_ACTIONS)
-        self.sleep_head = nn.Sequential(
-            nn.Linear(HIDDEN_DIM, HIDDEN_DIM),
-            nn.ReLU(),
-            nn.Linear(HIDDEN_DIM, 1),
-            nn.Sigmoid(),
-        )
-        self.action_fc = nn.Sequential(
-            nn.Linear(ACTION_BITS, 16),
-            nn.ReLU(),
-            nn.Linear(16, ACTION_BITS),
-        )
-        self.time_fc = nn.Sequential(
-            nn.Linear(1, 4),
-            nn.ReLU(),
-            nn.Linear(4, 1),
+        # Use padding_idx so the PAD embedding stays zeroed and is not updated
+        self.embed = nn.Embedding(VOCAB_SIZE, EMB, padding_idx=PAD_IDX)
+
+        self.gru = nn.GRU(
+            input_size=EMB + 2,   # +2 for normalized (row,col)
+            hidden_size=HIDDEN,
+            num_layers=1,
+            batch_first=True,
         )
 
-    def _pack_input_vec(
-        self, board_2ch: torch.Tensor, action_token: int, user_idx: int, prev_delta_norm: float
-    ) -> torch.Tensor:
-        bf = self.cnn(board_2ch)
-        abits = int_to_8bits(int(action_token))
-        abits = self.action_fc(abits) * 3.0
-        uemb = self.user_emb(torch.tensor([user_idx]))
-        dfeat = torch.tensor([[float(prev_delta_norm)]], dtype=torch.float32)
-        dfeat = self.time_fc(dfeat)
-        x = torch.cat([bf, abits, uemb, dfeat], dim=1)
-        return x
+        self.fc = nn.Linear(HIDDEN, NUM_ACTIONS)
 
-    def forward_step(
-        self,
-        board_2ch: torch.Tensor,
-        action_token: int,
-        user_idx: int,
-        prev_delta_norm: float,
-        h: Optional[torch.Tensor] = None,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        if board_2ch.dim() == 5:
-            board_2ch = board_2ch.squeeze(0)
-        elif board_2ch.dim() == 3:
-            board_2ch = board_2ch.unsqueeze(0)
+    @staticmethod
+    def _norm_rc(rows: torch.Tensor, cols: torch.Tensor, H: int, W: int):
+        """
+        rows, cols: (B, T) integer or float tensors
+        returns: (B, T, 2) normalized to [0,1]
+        """
+        r = rows.float() / float(max(H - 1, 1))
+        c = cols.float() / float(max(W - 1, 1))
+        return torch.stack([r, c], dim=-1)
 
-        x = self._pack_input_vec(board_2ch, action_token, user_idx, prev_delta_norm)
-        x = x.unsqueeze(1)
-        out, h_new = self.gru(x, h)
-        out1 = out.squeeze(1)
-        logits = self.head(out1)
-        sleep_reg = self.sleep_head(out1)
-        return logits, h_new, sleep_reg
+    def forward(self, actions, rows, cols, H=64, W=64):
+        """
+        actions: (B, T) long, values in {0..4, PAD_IDX}
+        rows:    (B, T) long/float raw indices
+        cols:    (B, T) long/float raw indices
+        """
+        a = self.embed(actions)             # (B,T,EMB)
+        rc = self._norm_rc(rows, cols, H, W)  # (B,T,2)
+        x = torch.cat([a, rc], dim=-1)      # (B,T,EMB+2)
 
-    def forward_step_batch(
-        self,
-        board_2ch: torch.Tensor,
-        prev_tokens: torch.Tensor,
-        user_idx: torch.Tensor,
-        prev_delta_norm: torch.Tensor,
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor], torch.Tensor]:
-        B = board_2ch.size(0)
-        outs, sleeps = [], []
-        h = None
-        for i in range(B):
-            logits, h, sleep_reg = self.forward_step(
-                board_2ch[i:i+1],
-                int(prev_tokens[i]),
-                int(user_idx[i]),
-                float(prev_delta_norm[i].item()) if prev_delta_norm.dim() > 0 else float(prev_delta_norm)
-            )
-            outs.append(logits)
-            sleeps.append(sleep_reg)
-        return torch.cat(outs, dim=0), h, torch.cat(sleeps, dim=0)
+        out, _ = self.gru(x)                # (B,T,HIDDEN)
+        last = out[:, -1, :]                # (B,HIDDEN)
+        return self.fc(last)                # (B, NUM_ACTIONS)

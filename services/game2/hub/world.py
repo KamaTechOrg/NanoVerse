@@ -8,7 +8,7 @@ from ..core.settings import W, H, DTYPE, BIT_FRUIT_IDX
 from ..core.bits import get_bit
 from ..data.db_chunks import ChunkDB
 from ..data.db_players import PlayerDB
-from ..data.db_history import  PlayerActionHistory
+from ..data.user_logs import UserActionLogger
 from .chunk_players import ChunkPlayers
 from ..core.ids import chunk_id_from_coords, coords_from_chunk_id
 import random
@@ -18,10 +18,10 @@ logger = logging.getLogger(__name__)
 class WorldService:
     """Manages the game world, chunks, and player positions."""
     def __init__(self, chunk_db: ChunkDB, player_db: PlayerDB, 
-                 player_actions_history: PlayerActionHistory, chunk_players: ChunkPlayers) -> None:
+                 user_logs: UserActionLogger, chunk_players: ChunkPlayers) -> None:
         self.chunk_db = chunk_db
         self.player_db = player_db
-        self.player_actions_history = player_actions_history
+        self.user_logs = user_logs
 
 
         self._chunks: Dict[str, torch.Tensor] = {}

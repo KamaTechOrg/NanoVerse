@@ -12,6 +12,7 @@ from .color import ColorService
 from .types import ActionToken
 from ..core.settings import W, H
 from ..data.db_players import PlayerDB
+from ..data.user_logs import UserActionLogger
 
 from .chunk_players import ChunkPlayers
 logger = logging.getLogger(__name__)
@@ -21,7 +22,8 @@ class Hub:
 
     def __init__(self, world: WorldService, movement,#movement service 
                  scrolls: ScrollService, bots: BotService, sessions: SessionStore, 
-                 color_service:ColorService, players_db: PlayerDB, chunk_players: ChunkPlayers) -> None:
+                 color_service:ColorService, players_db: PlayerDB, chunk_players: ChunkPlayers,
+                 user_logger: UserActionLogger) -> None:
         from .movement import MovementService
 
         self.world = world
@@ -34,7 +36,29 @@ class Hub:
         self.players_db = players_db
         self.chunk_players = chunk_players
         self._global_lock = asyncio.Lock()
-               
+        self.user_logger = user_logger
+        
+        
+    async def bot_mode(self, ws: WebSocket, enabled: bool):
+        sess = self.sessions.get(ws)
+        if not sess:
+            return
+
+        user_id = sess.state.user_id
+        state = sess.state
+
+        if enabled:
+            # הפעלת בוט
+            if not self.bots.is_running(user_id):
+                self.bots.start(user_id, state)
+                print(f"[BOT] enabled for {user_id}")
+        else:
+            # כיבוי בוט
+            if self.bots.is_running(user_id):
+                self.bots.stop(user_id)
+                print(f"[BOT] disabled for {user_id}")
+       
+       
     async def connect(self, ws: WebSocket) -> None:
         token = AuthUtils.extract_token(ws)
         ok, reason, user_id = AuthUtils.verify_token_or_reason(token)
@@ -76,10 +100,10 @@ class Hub:
             
              if not remaining:  
                  self.world.despawn_player(sess.state) 
-                 self.bots.start(user_id, sess.state)
-                 print("start the bot")
+                #  self.bots.start(user_id, sess.state)
+                #  print("start the bot")
          except Exception as e:
-             import traceback
+             import traceback   
              traceback.print_exc()
 
 
@@ -88,11 +112,12 @@ class Hub:
         if not sess:
             return
         state = sess.state
-        board_before = self.world.ensure_chunk(state.chunk_id).clone()
-        players_before = self.chunk_players.get_players_in_chunk(state.chunk_id)
+        # board_before = self.world.ensure_chunk(state.chunk_id).clone()
+        # players_before = self.chunk_players.get_players_in_chunk(state.chunk_id)
         
-        self.world.player_actions_history.record_player_action(state.user_id, 
-                                                               state.chunk_id, dr, dc, board_before, players= players_before)
+        # self.world.player_actions_history.record_player_action(state.user_id, 
+                                                            #    state.chunk_id, dr, dc, board_before, players= players_before)
+        
         
         moved = await self.movement.apply_move(state, dr, dc)
         if moved.old_chunk_id and moved.old_chunk_id != state.chunk_id:
@@ -103,6 +128,21 @@ class Hub:
             await self.scrolls.broadcast_chunk(state.chunk_id)
         await self.scrolls.maybe_send_scroll_at(ws)
         
+        move_map = {
+            (0, 1):1,
+            (0,-1):2,
+            (-1, 0): 3,
+            (1,0): 4
+        }
+        token = move_map.get((dr, dc))
+        if token:
+            self.user_logger.append(
+                user_id=state.user_id,
+                chunk_id=state.chunk_id,
+                row = state.pos.row,
+                col = state.pos.col,
+                token=token,
+            )
         
     async def write_scroll(self, ws: WebSocket, content: str) -> None:
       sess = self.sessions.get(ws)
@@ -135,15 +175,24 @@ class Hub:
         if not sess:
             return 
     
-        board_before = self.world.ensure_chunk(sess.state.chunk_id).clone()
-        players_before = self.chunk_players.get_players_in_chunk(sess.state.chunk_id)
+        # board_before = self.world.ensure_chunk(sess.state.chunk_id).clone()
+        # players_before = self.chunk_players.get_players_in_chunk(sess.state.chunk_id)
         
-        self.world.player_actions_history.append_player_action(
+        # self.world.user_logs.append(
+        #     sess.state.user_id,
+        #     sess.state.chunk_id,
+        #     sess.state.pos.row,
+        #     sess.state.pos.col,
+        #     ActionToken.COLOR,
+        # )
+        
+        
+        self.user_logger.append(
             sess.state.user_id,
             sess.state.chunk_id,
-            ActionToken.COLOR,
-            board_before,
-            players_before
+            sess.state.pos.row,
+            sess.state.pos.col,
+            ActionToken.COLOR
         )
         self.color_service.color_plus_plus(sess.state)
         await self.scrolls.broadcast_chunk(sess.state.chunk_id)

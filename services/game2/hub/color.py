@@ -33,3 +33,6 @@ class ColorService:
         board[r0, c0] = torch.tensor(new_val, dtype=DTYPE)
         
         self.world._mark_dirty(state.chunk_id)  
+
+        # r, c = state.pos.row, state.pos.col
+        # self.world.player_actions_history.append_player_action(state.user_id, state.chunk_id, r, c, int(ActionToken.COLOR))

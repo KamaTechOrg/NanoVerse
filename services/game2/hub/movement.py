@@ -12,6 +12,7 @@ from .chunk_players import ChunkPlayers
 from ..core.settings import DTYPE, BIT_FRUIT_IDX
 from ..core.bits import get_bit
 from ..data.db_scores import ScoresDB
+from ..data.user_logs import UserActionLogger
 @dataclass
 class MoveResult:
    moved: bool
@@ -20,12 +21,13 @@ class MoveResult:
 class MovementService:
     """Handles player movement logic both within and between chunks.
      the board state and player database accordingly."""
-    def __init__(self, world: WorldService, chunk_db: ChunkDB, chunk_players: ChunkPlayers, scores_db: ScoresDB, scrolls) -> None:
+    def __init__(self, world: WorldService, chunk_db: ChunkDB, chunk_players: ChunkPlayers, scores_db: ScoresDB, scrolls, user_logs: UserActionLogger) -> None:
         self.world = world
         self.scrolls = scrolls
         self.chunk_db = chunk_db
         self.chunk_players = chunk_players
         self.scores_db =scores_db
+        self.user_logs = user_logs
         
  
     async def apply_move(self, state: PlayerState, dr: int, dc: int) -> MoveResult:
@@ -57,11 +59,19 @@ class MovementService:
             self.scores_db.add_score(state.user_id, 5)
             
     async def move_within_chunk(self, state: PlayerState, board: torch.Tensor, nr: int, nc: int) -> None:
+        # old_r, old_c = state.pos.row, state.pos.col##??
         state.pos = Coord(nr, nc)   
         self.chunk_players.update_player_position(state.chunk_id, state.user_id, nr, nc)
         self.check_has_fruit(state, board,nr, nc)
-    
-            
+
+        # ##??new
+        # dr = nr - old_r
+        # dc = nc - old_c
+        # from ..hub.types import MOVE_TOKENS
+        # tok = MOVE_TOKENS.get((dr, dc))
+        # if tok is not None:
+        #     self.action_logger.append(state.user_id, state.chunk_id, nr, nc, int(tok)) 
+                       
     async def _transfer_between_chunks(self, state: PlayerState, direction: Direction) -> Tuple[bool, str]:##??can I delte many things from this function
         """Move player between chunks - keep both chunks in memory."""
       

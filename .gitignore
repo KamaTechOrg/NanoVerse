@@ -63,3 +63,7 @@ bot_gru/
 # === Explicitly track service data folder ===
 # =========================================
 !services/game2/data/
+!services/game2/data/db_scrolls
+!services/gam2/data/db_scores
+
+models

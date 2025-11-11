@@ -17,7 +17,7 @@ class ChatManager:
     def __init__(self, session_store: SessionStore, world: WorldService, message_service: MessageService, chunk_players: ChunkPlayers):
         self.session_store = session_store
         self.world = world
-        self.player_actions_history = world.player_actions_history
+        # self.player_actions_history = world.player_actions_history
         self._selected_partner: Dict[str, Optional[str]] = {}
         self.messages = message_service
         self.chunk_players = chunk_players
@@ -98,14 +98,14 @@ class ChatManager:
             if session:
                 try:
                     state = session.state
-                    board_before = self.world.ensure_chunk(state.chunk_id).clone()
-                    players_before = self.chunk_players.get_players_in_chunk(state.chunk_id)
-                    self.player_actions_history.record_player_send_message(
-                        user_id=player_id,
-                        chunk_id=state.chunk_id,
-                        board=board_before,
-                        players=players_before
-                    )
+                    # board_before = self.world.ensure_chunk(state.chunk_id).clone()
+                    # players_before = self.chunk_players.get_players_in_chunk(state.chunk_id)
+                    # self.player_actions_history.record_player_send_message(
+                    #     user_id=player_id,
+                    #     chunk_id=state.chunk_id,
+                    #     board=board_before,
+                    #     players=players_before
+                    # )
                 except Exception as e:
                     print(f"[WARN] Failed to record pre-chat snapshot for {player_id}: {e}")
 

@@ -1,4 +1,4 @@
-#V
+
 from pathlib import Path
 import torch
 
@@ -7,6 +7,7 @@ W = H = 64
 DTYPE = torch.uint8
 
 # Bit layout
+
 
 BIT_IS_PLAYER_IDX = 7
 # BIT_HAS_LINK_IDX  = 1 
@@ -31,6 +32,7 @@ DATA_DIR = Path("data")
 PLAYERS_DB_PATH = DATA_DIR / "players.db"
 SCROLLS_JSON_PATH = DATA_DIR / "message.json"##??change it to scroll_message
 HISTORY_JSON_PATH  = DATA_DIR / "history.json"
+USER_LOGS_DIR = DATA_DIR / "users"
 
 CHAT_DB_PATH = DATA_DIR / "chat.db"
 SCORES_DB_PATH = DATA_DIR /"scores.sqlite3"

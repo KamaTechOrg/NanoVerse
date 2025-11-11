@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { Wifi, WifiOff, Users, Gamepad2, MessageCircle, X, HelpCircle ,Trophy} from "lucide-react";
+import { Wifi, WifiOff, Users, Gamepad2, MessageCircle, X, HelpCircle, Trophy } from "lucide-react";
 import { authStorage } from "../utils/auth";
 import { MessageBubble } from "./MessageBubble";
 import { MessageInput } from "./MessageInput";
@@ -71,6 +71,7 @@ const VoxelGrid: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [quoteText, setQuoteText] = useState<string | null>(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [isBotMode, setIsBotMode] = useState(false)
 
   function pixelHasFruit(v: number): boolean {
     if (v == 32) return true
@@ -370,6 +371,29 @@ const VoxelGrid: React.FC = () => {
             <span className="font-medium">Leaderboard</span>
           </button>
 
+          <button
+            onClick={() => {
+              const enabled = !isBotMode;
+              setIsBotMode(enabled);
+              sendCommand({ command: "bot_mode", enabled });
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 transform hover:scale-105 font-medium
+    ${isBotMode
+                ? 'bg-gradient-to-r from-cyan-500/30 to-blue-500/30 text-cyan-300 border-2 border-cyan-400/50 shadow-lg shadow-cyan-500/20'
+                : 'bg-gradient-to-r from-slate-600/20 to-slate-700/20 text-slate-300 border-2 border-slate-600/30 hover:border-slate-500/50'
+              }`}
+            title={isBotMode ? "Switch to Manual Control" : "Enable Bot Mode"}
+          >
+            <div className="relative">
+              <Gamepad2 size={18} className={isBotMode ? 'animate-pulse' : ''} />
+              {isBotMode && (
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full animate-ping" />
+              )}
+            </div>
+            <span className="hidden sm:inline">
+              {isBotMode ? "🤖 Bot Active" : "Manual"}
+            </span>
+          </button>
 
           {lastAction && (
             <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-purple-500/20 text-purple-300 animate-pulse text-sm">
