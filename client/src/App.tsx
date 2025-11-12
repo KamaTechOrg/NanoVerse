@@ -9,7 +9,7 @@ import TopBar from "./components/TopBar";
 import { WebSocketProvider } from "./context/WebSocketProvider";
 
 // ---------------------- AUTH PAGE ----------------------
-function AuthPage() {
+function AuthPage({ onAuthSuccess }: { onAuthSuccess: () => void }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -57,17 +57,19 @@ function AuthPage() {
       {tab === "login" ? (
         <LoginForm
           onDone={(user, token) => {
-            localStorage.setItem("token", token);
-            localStorage.setItem("user", user);
-            navigate("/"); // ✅ now go to "/" instead of "/game"
+            authStorage.setToken(token);
+            authStorage.setUser(user);
+            onAuthSuccess(); 
+            navigate("/");
           }}
         />
       ) : (
         <RegisterForm
           onDone={(user, token) => {
-            localStorage.setItem("token", token);
-            localStorage.setItem("user", user);
-            navigate("/"); // ✅ now go to "/"
+            authStorage.setToken(token);
+            authStorage.setUser(user);
+            onAuthSuccess(); 
+            navigate("/");
           }}
         />
       )}
@@ -83,13 +85,15 @@ function PrivateRoute({ children }: { children: JSX.Element }) {
 
 // ---------------------- MAIN APP ----------------------
 export default function App() {
-  const isAuthed = authStorage.isAuthenticated();
+  const [isAuthed, setIsAuthed] = useState(authStorage.isAuthenticated());
+  const handleAuthSuccess = () => {
+    setIsAuthed(true);
+  };
 
   return (
     <BrowserRouter>
       <TopBar />
       <Routes>
-        {/* ✅ Root "/" is now the game page if logged in */}
         <Route
           path="/"
           element={
@@ -105,8 +109,8 @@ export default function App() {
           }
         />
 
-        <Route path="/login" element={<AuthPage />} />
-        <Route path="/register" element={<AuthPage />} />
+        <Route path="/login" element={<AuthPage onAuthSuccess={handleAuthSuccess} />} />
+        <Route path="/register" element={<AuthPage onAuthSuccess={handleAuthSuccess} />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
