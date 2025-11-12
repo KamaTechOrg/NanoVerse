@@ -2,7 +2,8 @@
 import torch
 from pathlib import Path
 from services.game2.models.bot_gru import GRUPolicy, SEQ_LEN, PAD_IDX, NUM_ACTIONS
-
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+_model_cache = {}
 # mapping between game tokens (1..5) and model indices (0..4)
 GAME_TO_IDX = {1:0, 2:1, 3:2, 4:3, 5:4}
 IDX_TO_GAME = {v:k for k,v in GAME_TO_IDX.items()}
@@ -76,3 +77,41 @@ def predict_next(user_id: str, last_actions, last_rows, last_cols, H=64, W=64):
         logits = model(a, r, c, H=H, W=W)     # (1, NUM_ACTIONS)
         pred_idx = int(torch.argmax(logits, dim=1).item())
     return IDX_TO_GAME[pred_idx]              # return game token (1..5)
+
+
+def _safe_mtime(p: Path) -> float:
+    try: return p.stat().st_mtime
+    except Exception: return -1.0
+
+def _try_load_state_dict(path: Path):
+    try: return torch.load(path, map_location="cpu")
+    except Exception as e:
+        print(f"[bot_predict] failed to load {path}: {e}")
+        return None
+
+def _load_model(user_id: str):
+    user_path = Path("models/users")/f"{user_id}.pt"
+    default_path = Path("models/users")/"default.pt"
+    disk_path = user_path if user_path.exists() else default_path
+    mtime = _safe_mtime(disk_path) if disk_path else -1
+
+    cached = _model_cache.get(user_id)
+    if cached:
+        model, cached_mtime = cached
+        if abs(cached_mtime - mtime) < 1e-6:
+            return model  # אין שינוי בקובץ
+
+    state = None
+    if user_path.exists(): state = _try_load_state_dict(user_path)
+    if state is None and default_path.exists():
+        print(f"[bot_predict] fallback to default.pt for {user_id}")
+        state = _try_load_state_dict(default_path)
+
+    from services.game2.models.bot_gru import GRUPolicy
+    model = GRUPolicy()
+    if state is not None:
+        try: model.load_state_dict(state, strict=True)
+        except Exception as e: print("[bot_predict] incompatible state_dict:", e)
+    model.eval(); model.to(DEVICE)
+    _model_cache[user_id] = (model, mtime)
+    return model
