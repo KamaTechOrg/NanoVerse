@@ -8,8 +8,8 @@ DTYPE = torch.uint8
 
 # Bit layout
 
-
-BIT_IS_PLAYER_IDX = 7
+BIT_IS_DANGER_IDX = 7
+# BIT_IS_PLAYER_IDX = 7
 # BIT_HAS_LINK_IDX  = 1 
 # BIT_R0_IDX, BIT_G0_IDX, BIT_B0_IDX = 2, 3, 4
 # BIT_R1_IDX, BIT_G1_IDX, BIT_B1_IDX = 5, 6, 7

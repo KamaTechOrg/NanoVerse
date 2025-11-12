@@ -79,6 +79,12 @@ const VoxelGrid: React.FC = () => {
 
   }
 
+  function pixelHasDanger(v: number): boolean {
+    // 2 ** 7 = 128  → the highest bit (BIT_IS_DANGER_IDX)
+    return (v & 0b10000000) !== 0;
+  }
+
+
   useEffect(() => {
     if (!quoteText) return;
     const t = setTimeout(() => setQuoteText(null), 6000);
@@ -225,10 +231,32 @@ const VoxelGrid: React.FC = () => {
         const blank = (v & 0b111111) === 0;
 
         const hasFruit = pixelHasFruit(v);
+        const hasDanger = pixelHasDanger(v)
         if (hasFruit) {
           console.log("find a fruit!!!");
         }
 
+        // cells.push(
+        //   <div
+        //     key={`${r}-${c}`}
+        //     className="voxel-cell relative"
+        //     style={{
+        //       backgroundColor: blank ? "transparent" : color,
+        //     }}
+        //   >
+        //     {hasFruit && (
+        //       <div
+        //         className="absolute inset-0 flex items-center justify-center pointer-events-none"
+        //         style={{
+        //           fontSize: "26px",
+        //           transform: "scale(1.2)",
+        //         }}
+        //       >
+        //         🍎
+        //       </div>
+        //     )}
+        //   </div>
+        // );
         cells.push(
           <div
             key={`${r}-${c}`}
@@ -248,8 +276,21 @@ const VoxelGrid: React.FC = () => {
                 🍎
               </div>
             )}
+
+            {hasDanger && ( // 👈 add this block
+              <div
+                className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                style={{
+                  fontSize: "28px",
+                  transform: "scale(1.3)",
+                }}
+              >
+                💣
+              </div>
+            )}
           </div>
         );
+
       }
     }
 

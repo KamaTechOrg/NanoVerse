@@ -13,6 +13,8 @@ from .types import ActionToken
 from ..core.settings import W, H
 from ..data.db_players import PlayerDB
 from ..data.user_logs import UserActionLogger
+from ..data.db_logs_with_danger import DangerLogger
+
 
 from .chunk_players import ChunkPlayers
 logger = logging.getLogger(__name__)
@@ -37,7 +39,8 @@ class Hub:
         self.chunk_players = chunk_players
         self._global_lock = asyncio.Lock()
         self.user_logger = user_logger
-        
+        self.danger_logger = DangerLogger(chunk_players)
+
         
     async def bot_mode(self, ws: WebSocket, enabled: bool):
         sess = self.sessions.get(ws)
@@ -143,7 +146,25 @@ class Hub:
                 col = state.pos.col,
                 token=token,
             )
-        
+           ##??new??
+            board = self.world.ensure_chunk(state.chunk_id)
+            action_str = {
+                1: "move_right",
+                2: "move_left",
+                3: "move_up",
+                4: "move_down"
+            }.get(token, "unknown")
+
+            self.danger_logger.append(
+                player_id=state.user_id,
+                chunk_id=state.chunk_id,
+                board=board,
+                row=state.pos.row,
+                col=state.pos.col,
+                action=action_str
+            )
+            
+            ##??new
     async def write_scroll(self, ws: WebSocket, content: str) -> None:
       sess = self.sessions.get(ws)
       if not sess:
@@ -174,18 +195,6 @@ class Hub:
         sess = self.sessions.get(ws)
         if not sess:
             return 
-    
-        # board_before = self.world.ensure_chunk(sess.state.chunk_id).clone()
-        # players_before = self.chunk_players.get_players_in_chunk(sess.state.chunk_id)
-        
-        # self.world.user_logs.append(
-        #     sess.state.user_id,
-        #     sess.state.chunk_id,
-        #     sess.state.pos.row,
-        #     sess.state.pos.col,
-        #     ActionToken.COLOR,
-        # )
-        
         
         self.user_logger.append(
             sess.state.user_id,
@@ -196,3 +205,16 @@ class Hub:
         )
         self.color_service.color_plus_plus(sess.state)
         await self.scrolls.broadcast_chunk(sess.state.chunk_id)
+        
+        ##??new??
+        board = self.world.ensure_chunk(sess.state.chunk_id)
+        self.danger_logger.append(
+            player_id=sess.state.user_id,
+            chunk_id=sess.state.chunk_id,
+            board=board,
+            row=sess.state.pos.row,
+            col=sess.state.pos.col,
+            action="color"
+        ) 
+        
+        

@@ -4,7 +4,7 @@ from typing import Dict, Tuple, Set
 import torch
 from .types import Coord, PlayerState, Direction
 from .board_utils import BoardUtils
-from ..core.settings import W, H, DTYPE, BIT_FRUIT_IDX
+from ..core.settings import BIT_IS_DANGER_IDX, W, H, DTYPE, BIT_FRUIT_IDX
 from ..core.bits import get_bit
 from ..data.db_chunks import ChunkDB
 from ..data.db_players import PlayerDB
@@ -56,9 +56,27 @@ class WorldService:
         self._chunks[chunk_id] = board
         if is_new:
             self._scatter_fruits(chunk_id, board)
+            self._scatter_dangers(chunk_id, board)
         return board
 
+    def _scatter_dangers(self, chunk_id: str, board: torch.Tensor):
+           """Place 8 dangers in fixed positions across every chunk."""
+           DANGER_COUNT = 8
+           DANGER_VALUE = 2 ** BIT_IS_DANGER_IDX
 
+           # constant positions (for reproducibility)
+           coords = [
+               (2, 2), (10, 10), (20, 20), (30, 30),
+               (40, 40), (50, 50), (10, 50), (50, 10)
+           ]
+
+           placed = 0
+           for (r, c) in coords[:DANGER_COUNT]:
+               if board[r, c].item() == 0:
+                   board[r, c] = torch.tensor(DANGER_VALUE, dtype=DTYPE)
+                   placed += 1
+
+           self.chunk_db.save_chunk(chunk_id, board)
     
     def _scatter_fruits(self, chunk_id: str, board: torch.Tensor):
        import random

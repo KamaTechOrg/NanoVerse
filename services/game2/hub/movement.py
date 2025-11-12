@@ -9,7 +9,7 @@ from ..data.db_chunks import ChunkDB
 from  ..data.db_players import PlayerDB
 from .chunk_players import ChunkPlayers
 
-from ..core.settings import DTYPE, BIT_FRUIT_IDX
+from ..core.settings import BIT_IS_DANGER_IDX, DTYPE, BIT_FRUIT_IDX
 from ..core.bits import get_bit
 from ..data.db_scores import ScoresDB
 from ..data.user_logs import UserActionLogger
@@ -63,19 +63,10 @@ class MovementService:
         state.pos = Coord(nr, nc)   
         self.chunk_players.update_player_position(state.chunk_id, state.user_id, nr, nc)
         self.check_has_fruit(state, board,nr, nc)
-
-        # ##??new
-        # dr = nr - old_r
-        # dc = nc - old_c
-        # from ..hub.types import MOVE_TOKENS
-        # tok = MOVE_TOKENS.get((dr, dc))
-        # if tok is not None:
-        #     self.action_logger.append(state.user_id, state.chunk_id, nr, nc, int(tok)) 
-                       
+        self.check_has_danger(state, board, nr, nc)
+      
     async def _transfer_between_chunks(self, state: PlayerState, direction: Direction) -> Tuple[bool, str]:##??can I delte many things from this function
         """Move player between chunks - keep both chunks in memory."""
-      
-
         old_chunk_id = state.chunk_id
         old_board = self.world.ensure_chunk(old_chunk_id)
         new_chunk_id = WorldService.neighbor_chunk_id(old_chunk_id, direction)
@@ -88,9 +79,19 @@ class MovementService:
         state.pos = target
 
         self.check_has_fruit(state, new_board, target.row, target.col)
+        self.check_has_danger(state, new_board, target.row, target.col)
+        
         self.chunk_players.move_player_to_chunk(old_chunk_id, new_chunk_id, state.user_id, target.row, target.col)
         await self.scrolls.on_enter_cell(state.user_id, new_chunk_id, target.row, target.col)
 
         return True, old_chunk_id
+    
+    
+    def check_has_danger(self, state: PlayerState, board, nr, nc):
+        cell_val = int(board[nr, nc].item())
+        DANGER_VALUE =  2 ** BIT_IS_DANGER_IDX
+        
+        if cell_val == DANGER_VALUE:
+            self.scores_db.add_score(state.user_id, -10)
 
         

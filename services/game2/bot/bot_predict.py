@@ -8,21 +8,6 @@ GAME_TO_IDX = {1:0, 2:1, 3:2, 4:3, 5:4}
 IDX_TO_GAME = {v:k for k,v in GAME_TO_IDX.items()}
 
 _model_cache = {}
-# def _load_model(user_id: str) -> GRUPolicy:
-#     if user_id in _model_cache:
-#         return _model_cache[user_id]
-
-#     model_path = Path("models/users") / f"{user_id}.pt"
-#     model = GRUPolicy()
-#     if model_path.exists():
-#         state = torch.load(model_path, map_location="cpu")
-#         model.load_state_dict(state)
-#     else:
-#         print(f"[bot_predict] WARNING: missing model for user {user_id}, random weights.")
-
-#     model.eval()
-#     _model_cache[user_id] = model
-#     return model
 def _load_model(user_id: str) -> GRUPolicy:
     if user_id in _model_cache:
         return _model_cache[user_id]
