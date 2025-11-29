@@ -17,6 +17,7 @@ interface GameState {
 
 type PlayerInChunk = {
   id: string;
+  name:string,
   row: number;
   col: number;
   color: number;
@@ -236,27 +237,6 @@ const VoxelGrid: React.FC = () => {
           console.log("find a fruit!!!");
         }
 
-        // cells.push(
-        //   <div
-        //     key={`${r}-${c}`}
-        //     className="voxel-cell relative"
-        //     style={{
-        //       backgroundColor: blank ? "transparent" : color,
-        //     }}
-        //   >
-        //     {hasFruit && (
-        //       <div
-        //         className="absolute inset-0 flex items-center justify-center pointer-events-none"
-        //         style={{
-        //           fontSize: "26px",
-        //           transform: "scale(1.2)",
-        //         }}
-        //       >
-        //         🍎
-        //       </div>
-        //     )}
-        //   </div>
-        // );
         cells.push(
           <div
             key={`${r}-${c}`}
@@ -304,7 +284,7 @@ const VoxelGrid: React.FC = () => {
           style={{
             width: `${cellW}%`,
             height: `${cellH}%`,
-            top: `calc(${p.row * cellH}% + ${cellH / 2}%)`,  // ✅ מרכז התא
+            top: `calc(${p.row * cellH}% + ${cellH / 2}%)`, 
             left: `calc(${p.col * cellW}% + ${cellW / 2}%)`, // ✅ מרכז התא
             pointerEvents: "none",
             transform: "translate(-50%, -50%)", // ✅ מרכז האייקון
@@ -355,7 +335,8 @@ const VoxelGrid: React.FC = () => {
     const chunkId = gameState?.chunk_id ?? sessionStorage.getItem("current_chunk_id") ?? null;
     return players.map((p) => ({
       ...p,
-      username: p.id,
+      // username: p.id,
+      username:p.name,
       email: "",
       chunk_id: chunkId || "",
     }));

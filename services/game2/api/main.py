@@ -5,12 +5,10 @@ from fastapi import FastAPI, WebSocket
 from starlette.websockets import WebSocketDisconnect
 from ..core.settings import (
     CMD_UP, CMD_DOWN, CMD_LEFT, CMD_RIGHT,
-    CMD_COLOR_PLUS_PLUS, CMD_SCROLL_WRITE, CMD_WHEREAMI, CHAT_TYPES, DATA_DIR
+    CMD_COLOR_PLUS_PLUS, CMD_SCROLL_WRITE, CMD_WHEREAMI, CHAT_TYPES, DATA_DIR, USER_LOGS_DIR
 )
 from ..data.db_players import PlayerDB
 from ..data.db_chunks import ChunkDB
-# from ..data.db_history import PlayerActionHistory
-from ..data.user_logs import UserActionLogger
 from ..data.db_scrolls import ScrollDB
 from ..hub.manager import Hub
 from ..hub.types import Direction, IncomingMsg
@@ -26,29 +24,31 @@ from ..data.db_chat import ChatDB
 from ..chat.chat_manager import  ChatManager
 from ..chat.messages import MessageService
 from services.game2.data.db_scores import ScoresDB
+from ..data.user_logs import UserActionLogger
+from ..data.player_name_db import PlayerNameDB
 
-from ..core.settings import USER_LOGS_DIR
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
+player_name_db = PlayerNameDB()
 logger = logging.getLogger(__name__)
 app = FastAPI(title="NanoVerse")
 
 player_db = PlayerDB()
+chunk_players = ChunkPlayers(player_db)
 chunk_db = ChunkDB()
 user_logs = UserActionLogger(USER_LOGS_DIR)
 scrolls_db = ScrollDB()
-chunk_players = ChunkPlayers(player_db)
 scores_db = ScoresDB()
 
-world_service = WorldService(chunk_db, player_db, user_logs, chunk_players)
+world_service = WorldService(chunk_db, player_db, chunk_players)
 session_store = SessionStore()
-scroll_service = ScrollService(world_service, session_store, scrolls_db, chunk_db, user_logs, player_db, scores_db) ##??can I delete the user logs
-movement_service = MovementService(world_service, chunk_db, chunk_players, scores_db, scroll_service, user_logs) ##??can I delete the use log 
+scroll_service = ScrollService(world_service, session_store, scrolls_db, chunk_db, player_db, scores_db, player_name_db)  
+movement_service = MovementService(world_service, chunk_db, chunk_players, scores_db, scroll_service)  
 color_service = ColorService(world_service, scroll_service)
 bot_service = BotService(world_service,movement_service,scroll_service,color_service, user_logs)
 
 hub = Hub(world_service, movement_service,
-          scroll_service,bot_service,session_store, color_service, player_db, chunk_players, user_logs)
+          scroll_service,bot_service,session_store, color_service, player_db, chunk_players, user_logs, player_name_db)
 
 
 chat_db = ChatDB()
@@ -82,16 +82,17 @@ async def _handle_command(ws: WebSocket, data: IncomingMsg) -> None:
         elif command == CMD_SCROLL_WRITE:
             await _handle_scroll(ws, data)
         elif command == CMD_WHEREAMI:
-            await hub.whereami(ws)   
+            await hub.whereami(ws)
         elif command == "bot_mode":
-            await hub.bot_mode(ws, data.get("enabled", False) )##??check if it realy works
+            await hub.bot_mode(ws, data.get("enabled", False) )
+            
     except Exception as e:
         await WebSocketUtils.send_json(ws, {"ok": False, "error": "action_failed", "msg": str(e)})
 @app.on_event("startup")
 async def _startup():
     await scrolls_db.connect()       
     await scrolls_db.ensure_schema() 
-       
+    
    
 @app.websocket("/ws")
 async def ws_endpoint(ws: WebSocket) -> None:

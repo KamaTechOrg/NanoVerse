@@ -10,12 +10,11 @@ from ..core.settings import W, H, BIT_HAS_LINK_IDX, DTYPE
 from ..core.bits import get_bit
 from ..data.db_scrolls import ScrollDB
 from ..data.db_players import PlayerDB
-from ..data.db_history import PlayerActionHistory
 from .scroll_message import ScrollMessage
 import torch
 from ..data.db_chunks import ChunkDB
 from ..data.db_scores import ScoresDB
-from datetime import datetime
+from ..data.player_name_db import PlayerNameDB
 logger = logging.getLogger(__name__)
 
 class ScrollService:
@@ -26,24 +25,40 @@ class ScrollService:
         sessions: SessionStore,
         scroll_db: ScrollDB,
         chunk_db: ChunkDB,
-        player_action_history: PlayerActionHistory,
         player_db: PlayerDB,
         scores_db: ScoresDB, 
+        player_name_db: PlayerNameDB
     ) -> None:
         self.world = world
         self.sessions = sessions
         self.scroll_db = scroll_db
         self.chunk_db = chunk_db
-        self.player_action_history = player_action_history
         self.player_db = player_db
         self.scores_db = scores_db
+        self.player_name_db = player_name_db
 
-        #        map: user_id -> (scroll_id, chunk_id, row, col)
         self._pending_cleanup: Dict[str, Tuple[str, str, int, int]] = {}
 
+    
     def _players_in_chunk_payload(self, chunk_id: str) -> List[dict]:
-        rows = self.player_db.list_players_in_chunk(chunk_id)
-        return [{"id": pid, "row": r, "col": c} for (pid, r, c) in rows]
+       rows = self.player_db.list_players_in_chunk(chunk_id)
+       players = []
+
+       for (pid, r, c) in rows:
+           name = (
+               self.player_name_db.get(pid) or
+               "None--"
+           )
+
+           players.append({
+               "id": pid,
+               "name": name,
+               "row": r,
+               "col": c
+           })
+
+       return players
+   
        
     async def broadcast_chunk(self, chunk_id: str) -> None:
         board = self.world.ensure_chunk(chunk_id)
@@ -107,7 +122,6 @@ class ScrollService:
                     "message": "This spot already has a message!",
                 })
                 return
-
             scroll = ScrollMessage(
                 content=content,
                 author=sess.state.user_id or "unknown",
@@ -121,16 +135,6 @@ class ScrollService:
             board[state.pos.row, state.pos.col] = torch.tensor(v, dtype=DTYPE)
 
             self.chunk_db.save_chunk(state.chunk_id, board)
-
-            try:
-                self.player_action_history.append_player_action(
-                    sess.state.user_id,
-                    state.chunk_id,
-                    ActionToken.DM,
-                    board,
-                )
-            except Exception as e:
-                logger.warning("Failed to append history: %s", e)
 
             await self.broadcast_chunk(state.chunk_id)
 

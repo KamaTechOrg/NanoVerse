@@ -6,13 +6,10 @@ from .types import Direction, Coord, PlayerState
 from .board_utils import BoardUtils
 from .world import WorldService
 from ..data.db_chunks import ChunkDB
-from  ..data.db_players import PlayerDB
 from .chunk_players import ChunkPlayers
-
-from ..core.settings import BIT_IS_DANGER_IDX, DTYPE, BIT_FRUIT_IDX
-from ..core.bits import get_bit
+from .scrolls import ScrollService
+from ..core.settings import BIT_IS_DANGER_IDX, DTYPE
 from ..data.db_scores import ScoresDB
-from ..data.user_logs import UserActionLogger
 @dataclass
 class MoveResult:
    moved: bool
@@ -21,14 +18,12 @@ class MoveResult:
 class MovementService:
     """Handles player movement logic both within and between chunks.
      the board state and player database accordingly."""
-    def __init__(self, world: WorldService, chunk_db: ChunkDB, chunk_players: ChunkPlayers, scores_db: ScoresDB, scrolls, user_logs: UserActionLogger) -> None:
+    def __init__(self, world: WorldService, chunk_db: ChunkDB, chunk_players: ChunkPlayers, scores_db: ScoresDB, scrolls :ScrollService) -> None:
         self.world = world
         self.scrolls = scrolls
         self.chunk_db = chunk_db
         self.chunk_players = chunk_players
-        self.scores_db =scores_db
-        self.user_logs = user_logs
-        
+        self.scores_db =scores_db        
  
     async def apply_move(self, state: PlayerState, dr: int, dc: int) -> MoveResult:
         nr, nc = state.pos.row + dr, state.pos.col + dc
@@ -47,9 +42,7 @@ class MovementService:
         direction = BoardUtils.edge_direction(nr, nc)
         moved, old_chunk_id = await self._transfer_between_chunks(state, direction)
         return MoveResult(moved, old_chunk_id if moved else None)
-
-    
-    
+   
     def check_has_fruit(self, state:PlayerState, board, nr, nc):
          cell_val = int(board[nr, nc].item())
     
@@ -59,7 +52,6 @@ class MovementService:
             self.scores_db.add_score(state.user_id, 5)
             
     async def move_within_chunk(self, state: PlayerState, board: torch.Tensor, nr: int, nc: int) -> None:
-        # old_r, old_c = state.pos.row, state.pos.col##??
         state.pos = Coord(nr, nc)   
         self.chunk_players.update_player_position(state.chunk_id, state.user_id, nr, nc)
         self.check_has_fruit(state, board,nr, nc)
@@ -83,14 +75,12 @@ class MovementService:
         
         self.chunk_players.move_player_to_chunk(old_chunk_id, new_chunk_id, state.user_id, target.row, target.col)
         await self.scrolls.on_enter_cell(state.user_id, new_chunk_id, target.row, target.col)
-
         return True, old_chunk_id
     
     
     def check_has_danger(self, state: PlayerState, board, nr, nc):
         cell_val = int(board[nr, nc].item())
-        DANGER_VALUE =  2 ** BIT_IS_DANGER_IDX
-        
+        DANGER_VALUE =  2 ** BIT_IS_DANGER_IDX   
         if cell_val == DANGER_VALUE:
             self.scores_db.add_score(state.user_id, -10)
 

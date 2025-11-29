@@ -1,4 +1,3 @@
-# services/game2/data/db_scrolls.py  
 import aiosqlite
 from pathlib import Path
 from datetime import datetime
@@ -7,16 +6,6 @@ from ..core.settings import DATA_DIR
 
 
 class ScrollDB:
-    """
-    Scrolls storage backed by SQLite with an atomic "mark found once" update.
-    Schema:
-      id INTEGER PK AUTOINCREMENT
-      chunk_id TEXT, row INT, col INT (יחודיים יחד)
-      content TEXT
-      author_user_id TEXT
-      found_by_user_id TEXT NULL
-      found_at TEXT NULL (ISO datetime)
-    """
 
     def __init__(self, path: str | Path | None = None):
         if path is None:
@@ -33,7 +22,6 @@ class ScrollDB:
             await self.conn.commit()
 
     async def ensure_schema(self):
-        # ודאי שיש חיבור
         if self.conn is None:
             await self.connect()
 
@@ -46,10 +34,9 @@ class ScrollDB:
             content TEXT NOT NULL,
             author_user_id TEXT NOT NULL,
             found_by_user_id TEXT NULL,
-            found_at TEXT NULL
+            foundat TEXT NULL
         );
         """)
-        # ייחוד לפי מיקום
         await self.conn.execute("""
         CREATE UNIQUE INDEX IF NOT EXISTS ux_scrolls_position
         ON scrolls(chunk_id, row, col);
@@ -61,9 +48,7 @@ class ScrollDB:
         await self.conn.commit()
 
     async def load_scroll(self, chunk_id: str, row: int, col: int):
-        """
-        החזרת dict של ההודעה במיקום הנתון, או None.
-        """
+        
         if self.conn is None:
             await self.connect()
         sql = """SELECT id, chunk_id, row, col, content, author_user_id, found_by_user_id, found_at
@@ -74,17 +59,11 @@ class ScrollDB:
             return None
         keys = ["id","chunk_id","row","col","content","author_user_id","found_by_user_id","found_at"]
         d = {k: r[i] for i,k in enumerate(keys)}
-        # תאימות לאחור: לפעמים בקוד קוראים לשדה 'author'
         d["author"] = d["author_user_id"]
         return d
 
     async def save_scroll(self, scroll) -> int:
-        """
-        יצירה/עדכון לפי מיקום:
-        אם כבר קיימת הודעה באותו (chunk,row,col) — נעדכן את התוכן והמחבר.
-        מחזירה id של הרשומה אחרי הפעולה.
-        scroll: אובייקט עם .chunk_id, .position = (row, col), .content, .author (user_id)
-        """
+       
         if self.conn is None:
             await self.connect()
 
@@ -93,7 +72,6 @@ class ScrollDB:
         content = scroll.content
         author_user_id = getattr(scroll, "author", getattr(scroll, "author_user_id", ""))
 
-        # UPSERT לפי מיקום
         sql = """
         INSERT INTO scrolls (chunk_id,row,col,content,author_user_id)
         VALUES (?,?,?,?,?)
@@ -104,7 +82,6 @@ class ScrollDB:
         cur = await self.conn.execute(sql, (chunk_id, row, col, content, author_user_id))
         await self.conn.commit()
 
-        # אם נוצרה חדשה: lastrowid, אם עודכנה — צריך לשלוף את ה-id
         if cur.lastrowid:
             return cur.lastrowid
         async with self.conn.execute(
@@ -115,9 +92,7 @@ class ScrollDB:
         return r[0] if r else None
 
     async def mark_found_if_null(self, msg_id: int, found_by_user_id: str) -> bool:
-        """
-        מסמן הודעה כ"נמצאה" רק אם טרם נמצאה. מחזיר True אם עודכן, אחרת False.
-        """
+       
         if self.conn is None:
             await self.connect()
         now = datetime.utcnow().isoformat()

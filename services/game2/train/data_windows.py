@@ -5,7 +5,7 @@ from typing import Iterable, Dict, Any, Optional
 
 def iter_events_jsonl(path: Path):
     if not path.exists():
-        return
+        return  
     with path.open("r", encoding="utf-8") as f:
         for line in f:
             try:

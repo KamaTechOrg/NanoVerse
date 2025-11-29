@@ -1,4 +1,3 @@
-# services/game2/train/train_bot.py
 import json
 from pathlib import Path
 import torch
@@ -10,7 +9,6 @@ import matplotlib.pyplot as plt
 from services.game2.models.bot_gru import GRUPolicy, SEQ_LEN, PAD_IDX, NUM_ACTIONS
 from services.game2.train.safe_io import safe_save_state_dict
 from services.game2.models.bot_gru import GRUPolicy
-# map between game tokens and model indices
 GAME_TO_IDX = {1:0, 2:1, 3:2, 4:3, 5:4}
 
 class BotDataset(Dataset):
@@ -28,7 +26,6 @@ class BotDataset(Dataset):
         with jsonl_path.open("r", encoding="utf-8") as f:
             for line in f:
                 rec = json.loads(line)
-                # Ignore bot-generated data if present
                 if rec.get("source") == "bot":
                     continue
                 self.actions.append(GAME_TO_IDX.get(int(rec["token"]), 0))
@@ -139,7 +136,7 @@ def train_for_user(user_id: str, H=64, W=64, lr=1e-3, epochs=12, batch_size=64):
 
     torch.save(model.state_dict(), model_path)
 
-    print("✅ Saved:", model_path)
+    print(" Saved:", model_path)
 
     # Graphs
     plt.figure(figsize=(12,5))

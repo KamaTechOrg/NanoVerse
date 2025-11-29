@@ -1,21 +1,20 @@
-
 from __future__ import annotations
 import asyncio
 from collections import deque
-from pathlib import Path
 from typing import Dict, Optional
-
+import json
+from pathlib import Path
 from services.game2.hub.types import PlayerState, ActionToken
 from services.game2.hub.movement import MovementService
 from services.game2.hub.world import WorldService
 from services.game2.hub.scrolls import ScrollService
 from services.game2.hub.color import ColorService
-from services.game2.bot.bot_predict import predict_next
-# from services.game2.bot_2.bot_predict import predict_next##??the new one
-from services.game2.bot_2.dataset import encode_state
 
-from services.game2.models.bot_gru import SEQ_LEN
+from services.game2.bot.bot_predict import predict_next
+from services.game2.bot.model import SEQ_LEN
+
 from services.game2.data.user_logs import UserActionLogger
+
 
 MOVE_DIR = {
     ActionToken.RIGHT: (0, +1),
@@ -24,25 +23,19 @@ MOVE_DIR = {
     ActionToken.DOWN:  (+1, 0),
 }
 
+
 class BotCtx:
     def __init__(self, user_id: str, state: PlayerState):
         self.user_id = user_id
         self.state = state
         self.task: Optional[asyncio.Task] = None
-
-        # היסטוריית פעולה/שורה/עמודה
-        self.last_actions: deque[int] = deque(maxlen=SEQ_LEN)
-        self.last_rows:    deque[int] = deque(maxlen=SEQ_LEN)
-        self.last_cols:    deque[int] = deque(maxlen=SEQ_LEN)
+        self.last_actions: deque[str] = deque(maxlen=SEQ_LEN)
 
 
 class BotService:
     """
-    Bot using GRUPolicy (new architecture)
-    Predicts next action from:
-    - last 30 actions
-    - last 30 rows
-    - last 30 cols
+    Bot using GRUActionPredictor (bot)
+    Predicts next action from last SEQ_LEN actions בלבד
     """
 
     def __init__(self, world: WorldService, movement: MovementService,
@@ -55,6 +48,7 @@ class BotService:
         self.user_logs = user_logs
 
     async def _tick(self, user_id: str):
+        print("bot tick started for: ", user_id)
         ctx = self.bots[user_id]
         TICK = 0.25
 
@@ -62,47 +56,25 @@ class BotService:
             try:
                 state = ctx.state
 
-                # מוסיפים row/col להיסטוריה
-                ctx.last_rows.append(state.pos.row)
-                ctx.last_cols.append(state.pos.col)
+                actions_seq = pad_seq(ctx.last_actions, SEQ_LEN, pad_value="COLOR")
 
-                # בונים וקטורים של 30
-                a = list(ctx.last_actions)
-                r = list(ctx.last_rows)
-                c = list(ctx.last_cols)
+                # predicted_action_name = predict_next(actions_seq)
+                predicted_action_name = predict_next(
+                user_id=user_id,
+                last_actions=actions_seq
+            )
 
-                # padding אם אין עדיין 30
-                if len(a) < SEQ_LEN:
-                    pad_len = SEQ_LEN - len(a)
-                  
+                token = ActionToken[predicted_action_name]
 
-                    a = pad_seq(ctx.last_actions, SEQ_LEN, pad_value=5)     # 5 is game COLOR, but model will map PAD separately in bot_predict
-                    r = pad_seq(ctx.last_rows,    SEQ_LEN, pad_value=ctx.state.pos.row)
-                    c = pad_seq(ctx.last_cols,    SEQ_LEN, pad_value=ctx.state.pos.col)
-
-                # חיזוי פעולה
-                pred = predict_next(
-                    user_id=user_id,
-                    last_actions=a,
-                    last_rows=r,
-                    last_cols=c,
-                    H = 64, W = 64
-                )
-
-                token = ActionToken(pred)
-
-                # ביצוע פעולה
                 if token in MOVE_DIR:
                     dr, dc = MOVE_DIR[token]
-                    # await self.movement.apply_move(ctx.state, dr, dc)
-                    ##??                    
                     moved = await self.movement.apply_move(ctx.state, dr, dc)
 
                     if moved.old_chunk_id and moved.old_chunk_id != ctx.state.chunk_id:
                         self.scroll.sessions.update_watchers_after_chunk_change(
                             ctx.state.user_id,
                             moved.old_chunk_id,
-                            ctx.state.chunk_id
+                            ctx.state.chunk_id,
                         )
 
                         await self.scroll.broadcast_chunk(ctx.state.chunk_id)
@@ -110,23 +82,21 @@ class BotService:
                     else:
                         await self.scroll.broadcast_chunk(ctx.state.chunk_id)
 
-                    ##??until here, mabye I can write it more short
-                    await self.scroll.broadcast_chunk(ctx.state.chunk_id)
-
                 elif token == ActionToken.COLOR:
                     self.color.color_plus_plus(ctx.state)
                     await self.scroll.broadcast_chunk(ctx.state.chunk_id)
 
-                # נשמור גם את הפעולה שחזינו
-                ctx.last_actions.append(pred)
+                ctx.last_actions.append(predicted_action_name)
+
                 self.user_logs.append(
-                    user_id= user_id,
-                    chunk_id= ctx.state.chunk_id,
-                    row = ctx.state.pos.row,
-                    col = ctx.state.pos.col,
-                    token=pred,
-                    # extra={"source":"bot"}
+                    user_id=user_id,
+                    chunk_id=ctx.state.chunk_id,
+                    row=ctx.state.pos.row,
+                    col=ctx.state.pos.col,
+                    token=token,      
+                
                 )
+
                 await asyncio.sleep(TICK)
 
             except Exception:
@@ -135,6 +105,7 @@ class BotService:
                 break
 
     def start(self, user_id: str, state: PlayerState):
+        print("start bot for", user_id)
         if user_id in self.bots:
             self.stop(user_id)
 
@@ -149,299 +120,61 @@ class BotService:
         ctx = self.bots.pop(user_id, None)
         if ctx and ctx.task:
             ctx.task.cancel()
-
         print(f"[BOT] stopped for {user_id}")
 
     def is_running(self, user_id: str) -> bool:
         return user_id in self.bots
 
 
-    # normalize all sequences to exactly 30
 def pad_seq(seq, target=SEQ_LEN, pad_value=None):
+    """
+    מנרמל רשימה (deque או list) לאורך קבוע target.
+    משתמש ב-pad_value, ואם None – חוזר על האיבר האחרון או 0.
+    """
     seq = list(seq)
     if len(seq) >= target:
         return seq[-target:]
-    pad = [pad_value if pad_value is not None else (seq[-1] if seq else 0)] * (target - len(seq))
+    if len(seq) == 0:
+        fill = pad_value if pad_value is not None else 0
+        return [fill] * target
+    last = seq[-1]
+    fill = pad_value if pad_value is not None else last
+    pad = [fill] * (target - len(seq))
     return pad + seq
 
+BOT3_USERS_DIR = Path("services/game2/bot/users")
 
-import json
 
-# def load_last_history_from_file(user_id: str, ctx: BotCtx, logs: UserActionLogger):
-#     path = logs._file(user_id)
-#     if not path.exists():
-#         return
-
-#     actions = []
-#     rows = []
-#     cols = []
-
-#     with path.open("r", encoding="utf-8") as f:
-#         for line in f:
-#             rec = json.loads(line)
-#             actions.append(rec["token"])
-#             rows.append(rec["row"])
-#             cols.append(rec["col"])
-
-#     actions = actions[-SEQ_LEN:]
-#     rows    = rows[-SEQ_LEN:]
-#     cols    = cols[-SEQ_LEN:]
-
-#     for a in actions:
-#         ctx.last_actions.append(a)
-
-#     for r in rows:
-#         ctx.last_rows.append(r)
-
-#     for c in cols:
-#         ctx.last_cols.append(c)
 def load_last_history_from_file(user_id: str, ctx: "BotCtx", logs: UserActionLogger):
-    path = logs._file(user_id)
+    user_dir = BOT3_USERS_DIR / user_id
+    path = user_dir / "actions.jsonl"
+
+    print(f"[HISTORY] loading for {user_id} from {path}")
+
     if not path.exists():
+        print("[HISTORY] file not found, skipping")
         return
-    actions, rows, cols = [], [], []
-    with path.open("r", encoding="utf-8") as f:
-        for line in f:
-            rec = json.loads(line)
-            if rec.get("source") == "bot":   # ignore bot feedback to avoid drift
-                continue
-            actions.append(int(rec["token"]))
-            rows.append(int(rec["row"]))
-            cols.append(int(rec["col"]))
-    for a in actions[-SEQ_LEN:]:
-        ctx.last_actions.append(a)
-    for r in rows[-SEQ_LEN:]:
-        ctx.last_rows.append(r)
-    for c in cols[-SEQ_LEN:]:
-        ctx.last_cols.append(c)
 
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            for line in f:
+                try:
+                    rec = json.loads(line)
+                except Exception as e:
+                    print("[HISTORY] bad JSON, skipping:", e)
+                    continue
 
-# services/game2/hub/bot.py
-# from __future__ import annotations
-# import asyncio
-# from collections import deque
-# from typing import Dict, Optional
-# import json
+                # לדלג על רשומות בוט
+                if rec.get("source") == "bot":
+                    continue
 
-# from services.game2.hub.types import PlayerState, ActionToken
-# from services.game2.hub.movement import MovementService
-# from services.game2.hub.world import WorldService
-# from services.game2.hub.scrolls import ScrollService
-# from services.game2.hub.color import ColorService
-# from services.game2.data.user_logs import UserActionLogger
-# from services.game2.models.bot_gru import SEQ_LEN
+                act = rec.get("action")
+                if isinstance(act, str):
+                    ctx.last_actions.append(act)
 
-# # 🧠 המודל החדש שלנו
-# from services.game2.bot_2.bot_predict import load_model, predict_next
-# from services.game2.bot_2.dataset import encode_state
-# from services.game2.core.bits import get_bit
-# from services.game2.core.settings import BIT_IS_DANGER_IDX, BIT_FRUIT_IDX
+        print(f"[HISTORY] loaded {len(ctx.last_actions)} actions for {user_id}")
 
-# MOVE_DIR = {
-#     ActionToken.RIGHT: (0, +1),
-#     ActionToken.LEFT:  (0, -1),
-#     ActionToken.UP:    (-1, 0),
-#     ActionToken.DOWN:  (+1, 0),
-# }
-
-
-# class BotCtx:
-#     def __init__(self, user_id: str, state: PlayerState):
-#         self.user_id = user_id
-#         self.state = state
-#         self.task: Optional[asyncio.Task] = None
-
-#         self.last_actions: deque[int] = deque(maxlen=SEQ_LEN)
-#         self.last_rows: deque[int] = deque(maxlen=SEQ_LEN)
-#         self.last_cols: deque[int] = deque(maxlen=SEQ_LEN)
-
-
-# class BotService:
-#     """
-#     Bot using GRUPolicy (new version in bot_2)
-#     Predicts next action based on:
-#     - last actions history
-#     - local surroundings (edge/danger/apple/player)
-#     """
-
-#     def __init__(self, world: WorldService, movement: MovementService,
-#                  scroll: ScrollService, color_service: ColorService,
-#                  user_logs: UserActionLogger):
-#         self.world = world
-#         self.movement = movement
-#         self.scroll = scroll
-#         self.color = color_service
-#         self.user_logs = user_logs
-#         self.bots: Dict[str, BotCtx] = {}
-
-#         # 🧠 נטען את המודל פעם אחת בלבד
-#         self.model = load_model("models/users/gru_policy.pt")
-#         print("[BOT] GRU model loaded successfully!")
-
-#     # ----------------------------
-#     # עוזרת – מחשבת מצב סביבתי
-#     # ----------------------------
-#     def _calc_state(self, state: PlayerState) -> dict:
-#         """Build local state: edge/danger/apple/player for 4 directions."""
-#         board = self.world.ensure_chunk(state.chunk_id)
-#         players = self.world.chunk_players.get_players_in_chunk(state.chunk_id)
-#         r, c = state.pos.row, state.pos.col
-#         H, W = board.shape
-#         state_dict = {}
-
-#         directions = {
-#             "up": (-1, 0),
-#             "down": (1, 0),
-#             "left": (0, -1),
-#             "right": (0, 1),
-#         }
-
-#         for name, (dr, dc) in directions.items():
-#             nr, nc = r + dr, c + dc
-#             edge = int(nr < 0 or nr >= H or nc < 0 or nc >= W)
-#             danger = 0
-#             apple = 0
-#             player = 0
-
-#             if not edge:
-#                 val = int(board[nr, nc].item())
-#                 if get_bit(val, BIT_IS_DANGER_IDX):
-#                     danger = 1
-#                 if get_bit(val, BIT_FRUIT_IDX):
-#                     apple = 1
-#                 for p in players:
-#                     if p["row"] == nr and p["col"] == nc:
-#                         player = 1
-#                         break
-
-#             state_dict[name] = {
-#                 "edge": edge,
-#                 "danger": danger,
-#                 "apple": apple,
-#                 "player": player,
-#             }
-
-#         return state_dict
-
-#     # ----------------------------
-#     # לולאת טיקים
-#     # ----------------------------
-#     async def _tick(self, user_id: str):
-#         ctx = self.bots[user_id]
-#         TICK = 0.25
-
-#         while user_id in self.bots:
-#             try:
-#                 s = ctx.state
-#                 ctx.last_rows.append(s.pos.row)
-#                 ctx.last_cols.append(s.pos.col)
-
-#                 a = pad_seq(ctx.last_actions, SEQ_LEN, pad_value=5)
-#                 r = pad_seq(ctx.last_rows, SEQ_LEN, pad_value=s.pos.row)
-#                 c = pad_seq(ctx.last_cols, SEQ_LEN, pad_value=s.pos.col)
-
-#                 # 🧩 נחשב state סביבתי
-#                 local_state = self._calc_state(s)
-
-#                 # 🔮 נבקש תחזית
-#                 action_id, _ = predict_next(
-#                     model=self.model,
-#                     row=s.pos.row,
-#                     col=s.pos.col,
-#                     state=local_state,
-#                     last_actions=a,
-#                 )
-
-#                 token = ActionToken(action_id)
-
-#                 # 🕹️ נבצע את הפעולה
-#                 if token in MOVE_DIR:
-#                     dr, dc = MOVE_DIR[token]
-#                     moved = await self.movement.apply_move(s, dr, dc)
-#                     await self.scroll.broadcast_chunk(s.chunk_id)
-#                     if moved.old_chunk_id and moved.old_chunk_id != s.chunk_id:
-#                         self.scroll.sessions.update_watchers_after_chunk_change(
-#                             s.user_id, moved.old_chunk_id, s.chunk_id
-#                         )
-#                         await self.scroll.broadcast_chunk(moved.old_chunk_id)
-
-#                 elif token == ActionToken.COLOR:
-#                     self.color.color_plus_plus(s)
-#                     await self.scroll.broadcast_chunk(s.chunk_id)
-
-#                 # נשמור היסטוריה
-#                 ctx.last_actions.append(action_id)
-#                 self.user_logs.append(
-#                     user_id=s.user_id,
-#                     chunk_id=s.chunk_id,
-#                     row=s.pos.row,
-#                     col=s.pos.col,
-#                     token=action_id,
-#                     extra={"source": "bot"},
-#                 )
-
-#                 await asyncio.sleep(TICK)
-
-#             except Exception:
-#                 import traceback
-#                 traceback.print_exc()
-#                 break
-
-#     # ----------------------------
-#     # ניהול הפעלה/עצירה
-#     # ----------------------------
-#     def start(self, user_id: str, state: PlayerState):
-#         if user_id in self.bots:
-#             self.stop(user_id)
-#         ctx = BotCtx(user_id, state)
-#         self.bots[user_id] = ctx
-#         load_last_history_from_file(user_id, ctx, self.user_logs)
-#         ctx.task = asyncio.create_task(self._tick(user_id))
-#         print(f"[BOT] started for {user_id}")
-
-#     def stop(self, user_id: str):
-#         ctx = self.bots.pop(user_id, None)
-#         if ctx and ctx.task:
-#             ctx.task.cancel()
-#         print(f"[BOT] stopped for {user_id}")
-
-#     def is_running(self, user_id: str) -> bool:
-#         return user_id in self.bots
-
-
-# # ----------------------------
-# # פונקציות עזר
-# # ----------------------------
-# def pad_seq(seq, target=SEQ_LEN, pad_value=None):
-#     seq = list(seq)
-#     if len(seq) >= target:
-#         return seq[-target:]
-#     pad = [pad_value if pad_value is not None else (seq[-1] if seq else 0)] * (target - len(seq))
-#     return pad + seq
-
-
-# def load_last_history_from_file(user_id: str, ctx: BotCtx, logs: UserActionLogger):
-#     path = logs._file(user_id)
-#     if not path.exists():
-#         return
-#     actions, rows, cols = [], [], []
-#     with path.open("r", encoding="utf-8") as f:
-#         for line in f:
-#             rec = json.loads(line)
-#             if rec.get("source") == "bot":
-#                 continue
-#             actions.append(int(rec["token"]))
-#             rows.append(int(rec["row"]))
-#             cols.append(int(rec["col"]))
-#     for a in actions[-SEQ_LEN:]:
-#         ctx.last_actions.append(a)
-#     for r in rows[-SEQ_LEN:]:
-#         ctx.last_rows.append(r)
-#     for c in cols[-SEQ_LEN:]:
-#         ctx.last_cols.append(c)
-
-
-
-
-
-
+    except Exception as e:
+        print("[HISTORY] ERROR:", e)
+        import traceback
+        traceback.print_exc()

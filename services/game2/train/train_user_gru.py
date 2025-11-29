@@ -10,8 +10,7 @@ import torch.optim as optim
 from services.game2.models.gru_policy_user import GRUPolicyUser, NUM_ACTIONS, MAX_SEQ
 from services.game2.core.settings import H, W
 
-# Folders (adjust if you want to pull from settings)
-DATA_ROOT   = Path("data") / "users"
+  DATA_ROOT   = Path("data") / "users"
 MODELS_ROOT = Path("models") / "users"
 
 class UserSeqDataset(Dataset):

@@ -27,9 +27,11 @@ class AuthUtils:
         try:
             payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALG])
             user_id = str(payload.get("sub") or payload.get("id") or "")
+            
+            user_name =  payload.get("username")
             if not user_id:
                 return False, "token missing sub/id", None
-            return True, "", user_id
+            return True, "", user_id, user_name
         except JWTError as e:
             return False, f"invalid token: {e}", None
         except Exception as e: 

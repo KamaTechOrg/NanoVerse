@@ -3,27 +3,21 @@ import asyncio, logging
 from typing import Dict, Tuple, Set
 import torch
 from .types import Coord, PlayerState, Direction
-from .board_utils import BoardUtils
 from ..core.settings import BIT_IS_DANGER_IDX, W, H, DTYPE, BIT_FRUIT_IDX
-from ..core.bits import get_bit
 from ..data.db_chunks import ChunkDB
 from ..data.db_players import PlayerDB
-from ..data.user_logs import UserActionLogger
 from .chunk_players import ChunkPlayers
 from ..core.ids import chunk_id_from_coords, coords_from_chunk_id
 import random
-
 logger = logging.getLogger(__name__)
 
 class WorldService:
     """Manages the game world, chunks, and player positions."""
     def __init__(self, chunk_db: ChunkDB, player_db: PlayerDB, 
-                 user_logs: UserActionLogger, chunk_players: ChunkPlayers) -> None:
+                 chunk_players: ChunkPlayers) -> None:
         self.chunk_db = chunk_db
         self.player_db = player_db
-        self.user_logs = user_logs
-
-
+        
         self._chunks: Dict[str, torch.Tensor] = {}
         self._chunk_locks: Dict[str, asyncio.Lock] = {}
         self._dirty: Set[str] = set()
@@ -58,25 +52,6 @@ class WorldService:
             self._scatter_fruits(chunk_id, board)
             self._scatter_dangers(chunk_id, board)
         return board
-
-    def _scatter_dangers(self, chunk_id: str, board: torch.Tensor):
-           """Place 8 dangers in fixed positions across every chunk."""
-           DANGER_COUNT = 8
-           DANGER_VALUE = 2 ** BIT_IS_DANGER_IDX
-
-           # constant positions (for reproducibility)
-           coords = [
-               (2, 2), (10, 10), (20, 20), (30, 30),
-               (40, 40), (50, 50), (10, 50), (50, 10)
-           ]
-
-           placed = 0
-           for (r, c) in coords[:DANGER_COUNT]:
-               if board[r, c].item() == 0:
-                   board[r, c] = torch.tensor(DANGER_VALUE, dtype=DTYPE)
-                   placed += 1
-
-           self.chunk_db.save_chunk(chunk_id, board)
     
     def _scatter_fruits(self, chunk_id: str, board: torch.Tensor):
        import random
@@ -94,8 +69,41 @@ class WorldService:
                board[r, c] = torch.tensor(FRUIT_VALUE, dtype=DTYPE)
                placed += 1
 
-       self.chunk_db.save_chunk(chunk_id, board)## mabye enough to mark as dirty
-           
+       self.chunk_db.save_chunk(chunk_id, board)
+ 
+
+    def _scatter_dangers(self, chunk_id: str, board: torch.Tensor):
+        """Randomly place 8 dangers on empty cells of the chunk."""
+        import random
+
+        DANGER_COUNT = 8
+        DANGER_VALUE = 2 ** BIT_IS_DANGER_IDX
+
+        H, W = board.shape
+
+        empty_cells = [
+            (r, c)
+            for r in range(H)
+            for c in range(W)
+            if board[r, c].item() == 0
+        ]
+
+        if len(empty_cells) == 0:
+            print(f"[DANGER] No empty cells in chunk {chunk_id}")
+            return
+
+        selected = random.sample(
+            empty_cells,
+            k=min(DANGER_COUNT, len(empty_cells))
+        )
+
+        for (r, c) in selected:
+            board[r, c] = torch.tensor(DANGER_VALUE, dtype=DTYPE)
+
+        self.chunk_db.save_chunk(chunk_id, board)
+        print(f"[DANGER] placed {len(selected)} dangers in chunk {chunk_id}")
+
+
     async def _flush_loop(self):
         """Periodically write all dirty chunks to disk."""
         while True:
@@ -129,8 +137,7 @@ class WorldService:
          
         return Coord(H // 2, W // 2)
  
-      
-
+ 
     async def spawn_player(self, user_id: str, chunk_id: str, spawn: Coord) -> PlayerState:
            board = self.ensure_chunk(chunk_id)           
            return PlayerState(
@@ -140,7 +147,7 @@ class WorldService:
            )
                     
                      
-    def despawn_player(self, state: PlayerState) -> None:#mabye I can dlete this function??
+    def despawn_player(self, state: PlayerState) -> None:
         """When player disconnects."""
         self.player_db.upsert(state.user_id, state.chunk_id, state.pos.row, state.pos.col)
       

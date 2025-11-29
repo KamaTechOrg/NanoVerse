@@ -1,102 +1,71 @@
-# services/game2/bot/bot_predict.py
-import torch
+from __future__ import annotations
 from pathlib import Path
-from services.game2.models.bot_gru import GRUPolicy, SEQ_LEN, PAD_IDX, NUM_ACTIONS
+import torch, time
+
+from services.game2.bot_3.model import (
+    GRUActionPredictor,
+    ACTIONS,
+    ACTION_TO_IDX,
+    SEQ_LEN,
+)
+
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-_model_cache = {}
-# mapping between game tokens (1..5) and model indices (0..4)
-GAME_TO_IDX = {1:0, 2:1, 3:2, 4:3, 5:4}
-IDX_TO_GAME = {v:k for k,v in GAME_TO_IDX.items()}
 
-_model_cache = {}
-def _load_model(user_id: str) -> GRUPolicy:
-    if user_id in _model_cache:
-        return _model_cache[user_id]
+WEIGHTS_DIR  = Path("services/game2/bot_3/models_weights")
+DEFAULT_PATH = WEIGHTS_DIR / "default.pt"
 
-    # --- paths ---
-    user_path = Path("models/users") / f"{user_id}.pt"
-    default_path = Path("models/users") / "default.pt"
-
-    model = GRUPolicy()
-
-    if user_path.exists():
-        # load user-specific weights
-        state = torch.load(user_path, map_location="cpu")
-        model.load_state_dict(state)
-        print(f"[bot_predict] Loaded model for user {user_id}")
-
-    elif default_path.exists():
-        # fallback to default model
-        print(f"[bot_predict] WARNING: no model for {user_id}, loading default.pt")
-        state = torch.load(default_path, map_location="cpu")
-        model.load_state_dict(state)
-
-    else:
-        # fallback to random weights
-        print(f"[bot_predict] ERROR: no model for {user_id} AND no default.pt — using random weights!")
-
-    model.eval()
-    _model_cache[user_id] = model
-    return model
-
-def _pad_left(seq, target_len, pad_value):
-    seq = list(seq)
-    if len(seq) >= target_len:
-        return seq[-target_len:]
-    return [pad_value] * (target_len - len(seq)) + seq
-
-def predict_next(user_id: str, last_actions, last_rows, last_cols, H=64, W=64):
-    """
-    last_actions: list[int] (game tokens 1..5, arbitrary length)
-    last_rows:    list[int]
-    last_cols:    list[int]
-    """
-    # Map actions to model indices; PAD with PAD_IDX
-    last_actions_idx = [GAME_TO_IDX.get(a, 0) for a in last_actions]
-    a = torch.tensor([_pad_left(last_actions_idx, SEQ_LEN, PAD_IDX)], dtype=torch.long)
-    r = torch.tensor([_pad_left(last_rows,    SEQ_LEN, last_rows[-1] if last_rows else 0)], dtype=torch.float32)
-    c = torch.tensor([_pad_left(last_cols,    SEQ_LEN, last_cols[-1] if last_cols else 0)], dtype=torch.float32)
-
-    model = _load_model(user_id)
-    with torch.no_grad():
-        logits = model(a, r, c, H=H, W=W)     # (1, NUM_ACTIONS)
-        pred_idx = int(torch.argmax(logits, dim=1).item())
-    return IDX_TO_GAME[pred_idx]              # return game token (1..5)
-
+_model_cache: dict[str, tuple[torch.nn.Module, float]] = {}
 
 def _safe_mtime(p: Path) -> float:
-    try: return p.stat().st_mtime
-    except Exception: return -1.0
+    try:
+        return p.stat().st_mtime
+    except Exception:
+        return -1.0
 
 def _try_load_state_dict(path: Path):
-    try: return torch.load(path, map_location="cpu")
+    try:
+        return torch.load(path, map_location="cpu")
     except Exception as e:
         print(f"[bot_predict] failed to load {path}: {e}")
         return None
 
-def _load_model(user_id: str):
-    user_path = Path("models/users")/f"{user_id}.pt"
-    default_path = Path("models/users")/"default.pt"
-    disk_path = user_path if user_path.exists() else default_path
-    mtime = _safe_mtime(disk_path) if disk_path else -1
+def _load_model_for_user(user_id: str) -> torch.nn.Module:
+    user_path = WEIGHTS_DIR / f"{user_id}.pt"
+    disk_path = user_path if user_path.exists() else DEFAULT_PATH
+    if not disk_path.exists():
+        print(f"[bot_predict] WARNING: no weights found for {user_id}, building fresh model")
+        m = GRUActionPredictor().to(DEVICE).eval()
+        _model_cache[user_id] = (m, -1.0)
+        return m
 
+    mtime = _safe_mtime(disk_path)
     cached = _model_cache.get(user_id)
-    if cached:
-        model, cached_mtime = cached
-        if abs(cached_mtime - mtime) < 1e-6:
-            return model  # אין שינוי בקובץ
+    if cached and abs(cached[1] - mtime) < 1e-6:
+        return cached[0]  
 
-    state = None
-    if user_path.exists(): state = _try_load_state_dict(user_path)
-    if state is None and default_path.exists():
-        print(f"[bot_predict] fallback to default.pt for {user_id}")
-        state = _try_load_state_dict(default_path)
-
-    from services.game2.models.bot_gru import GRUPolicy
-    model = GRUPolicy()
+    state = _try_load_state_dict(disk_path)
+    model = GRUActionPredictor()
     if state is not None:
-        try: model.load_state_dict(state, strict=True)
-        except Exception as e: print("[bot_predict] incompatible state_dict:", e)
-    model.eval(); model.to(DEVICE)
+        try:
+            model.load_state_dict(state, strict=True)
+        except Exception as e:
+            print(f"[bot_predict] incompatible state_dict for {disk_path}: {e}")
+    model.to(DEVICE).eval()
     _model_cache[user_id] = (model, mtime)
+    print(f"[bot_predict] loaded weights from {disk_path}")
     return model
+
+def predict_next(user_id: str, last_actions: list[str]) -> str:
+    assert len(last_actions) == SEQ_LEN, f"expected {SEQ_LEN}, got {len(last_actions)}"
+    try:
+        idxs = [ACTION_TO_IDX[a] for a in last_actions]
+    except KeyError as e:
+        raise ValueError(f"unknown action in last_actions: {e}")
+
+    x = torch.tensor(idxs, dtype=torch.long, device=DEVICE).unsqueeze(0)  # (1, SEQ_LEN)
+    model = _load_model_for_user(user_id)
+
+    with torch.no_grad():
+        logits = model(x)
+        pred_idx = int(logits.argmax(dim=1).item())
+    return ACTIONS[pred_idx]

@@ -3,7 +3,6 @@ from .world import WorldService
 from .scrolls import ScrollService
 from ..core.settings import DTYPE
 from .types import PlayerState
-from ..data.db_history import ActionToken
 
 class ColorService:
     """Handles player color changes and updates the board and database accordingly."""
@@ -19,7 +18,6 @@ class ColorService:
 
         val = int(board[r0, c0].item()) 
 
-        # Extract 6-bit color
         color_code = val & 0b111111 
 
         # Add +1
@@ -33,6 +31,3 @@ class ColorService:
         board[r0, c0] = torch.tensor(new_val, dtype=DTYPE)
         
         self.world._mark_dirty(state.chunk_id)  
-
-        # r, c = state.pos.row, state.pos.col
-        # self.world.player_actions_history.append_player_action(state.user_id, state.chunk_id, r, c, int(ActionToken.COLOR))

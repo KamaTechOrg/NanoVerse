@@ -42,15 +42,16 @@ def make_color(r2: int, g2: int, b2: int) -> torch.Tensor:
 def get_player_color_by_user_id(uid: str | int) -> torch.Tensor:
     uid = int(uid)
 
-    base = uid & 0b111111   # take lowest 6 bits
+    base = uid & 0b111111   
 
     
     b2 = base & 0b11
     g2 = (base >> 2) & 0b11
     r2 = (base >> 4) & 0b11
 
-    # Add +1 ("add 32" concept)
     r2 = (r2 + 1) & 3
     g2 = (g2 + 1) & 3
     b2 = (b2 + 1) & 3
     return make_color(r2, g2, b2)
+
+  

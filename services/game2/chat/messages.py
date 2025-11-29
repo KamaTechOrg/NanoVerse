@@ -13,7 +13,6 @@ class MessageService:
     def __init__(self, db: ChatDB):
         self.db = db
 
-
     def append_message(
         self,
         sender_id: str,

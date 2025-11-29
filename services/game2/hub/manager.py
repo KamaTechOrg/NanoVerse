@@ -13,62 +13,56 @@ from .types import ActionToken
 from ..core.settings import W, H
 from ..data.db_players import PlayerDB
 from ..data.user_logs import UserActionLogger
-from ..data.db_logs_with_danger import DangerLogger
-
-
+from .movement import MovementService
 from .chunk_players import ChunkPlayers
+from ..data.player_name_db import PlayerNameDB
 logger = logging.getLogger(__name__)
+
 class Hub:
     """Main orchestration hub connecting all services.
     Manages player connections, movements, scroll actions, color changes, and bot lifecycle."""
-
-    def __init__(self, world: WorldService, movement,#movement service 
+    def __init__(self, world: WorldService, movement,
                  scrolls: ScrollService, bots: BotService, sessions: SessionStore, 
                  color_service:ColorService, players_db: PlayerDB, chunk_players: ChunkPlayers,
-                 user_logger: UserActionLogger) -> None:
-        from .movement import MovementService
+                 user_logger: UserActionLogger, player_name_db: PlayerNameDB) -> None:
 
         self.world = world
         self.movement: MovementService = movement
         self.scrolls = scrolls
         self.bots = bots   
         self.sessions = sessions
-        self.color_service = color_service
-        
+        self.color_service = color_service    
         self.players_db = players_db
         self.chunk_players = chunk_players
         self._global_lock = asyncio.Lock()
         self.user_logger = user_logger
-        self.danger_logger = DangerLogger(chunk_players)
-
+        self.player_name_db = player_name_db
         
     async def bot_mode(self, ws: WebSocket, enabled: bool):
         sess = self.sessions.get(ws)
         if not sess:
             return
-
         user_id = sess.state.user_id
         state = sess.state
 
         if enabled:
-            # הפעלת בוט
             if not self.bots.is_running(user_id):
                 self.bots.start(user_id, state)
                 print(f"[BOT] enabled for {user_id}")
         else:
-            # כיבוי בוט
             if self.bots.is_running(user_id):
                 self.bots.stop(user_id)
                 print(f"[BOT] disabled for {user_id}")
-       
-       
+             
     async def connect(self, ws: WebSocket) -> None:
         token = AuthUtils.extract_token(ws)
-        ok, reason, user_id = AuthUtils.verify_token_or_reason(token)
+        ok, reason, user_id , username = AuthUtils.verify_token_or_reason(token)
         if not ok or not user_id:
             await ws.close(code=4001)
             logger.debug(f"reject ws: {reason}")
-            return
+            return    
+        self.player_name_db.set(user_id, username)
+        # self.sessions.add(ws, user_id, username, chunk_id)
         
         if self.bots.is_running(user_id):
             bot_state = self.bots.stop(user_id)
@@ -103,8 +97,6 @@ class Hub:
             
              if not remaining:  
                  self.world.despawn_player(sess.state) 
-                #  self.bots.start(user_id, sess.state)
-                #  print("start the bot")
          except Exception as e:
              import traceback   
              traceback.print_exc()
@@ -115,13 +107,6 @@ class Hub:
         if not sess:
             return
         state = sess.state
-        # board_before = self.world.ensure_chunk(state.chunk_id).clone()
-        # players_before = self.chunk_players.get_players_in_chunk(state.chunk_id)
-        
-        # self.world.player_actions_history.record_player_action(state.user_id, 
-                                                            #    state.chunk_id, dr, dc, board_before, players= players_before)
-        
-        
         moved = await self.movement.apply_move(state, dr, dc)
         if moved.old_chunk_id and moved.old_chunk_id != state.chunk_id:
             self.sessions.update_watchers_after_chunk_change(state.user_id, moved.old_chunk_id, state.chunk_id)
@@ -146,25 +131,7 @@ class Hub:
                 col = state.pos.col,
                 token=token,
             )
-           ##??new??
-            board = self.world.ensure_chunk(state.chunk_id)
-            action_str = {
-                1: "move_right",
-                2: "move_left",
-                3: "move_up",
-                4: "move_down"
-            }.get(token, "unknown")
-
-            self.danger_logger.append(
-                player_id=state.user_id,
-                chunk_id=state.chunk_id,
-                board=board,
-                row=state.pos.row,
-                col=state.pos.col,
-                action=action_str
-            )
-            
-            ##??new
+          
     async def write_scroll(self, ws: WebSocket, content: str) -> None:
       sess = self.sessions.get(ws)
       if not sess:
@@ -189,8 +156,7 @@ class Hub:
             "players": players
             }
         await WebSocket.send_json(ws, payload)
-       
-               
+                     
     async def color_plus_plus(self, ws: WebSocket) ->None:
         sess = self.sessions.get(ws)
         if not sess:
@@ -206,15 +172,4 @@ class Hub:
         self.color_service.color_plus_plus(sess.state)
         await self.scrolls.broadcast_chunk(sess.state.chunk_id)
         
-        ##??new??
-        board = self.world.ensure_chunk(sess.state.chunk_id)
-        self.danger_logger.append(
-            player_id=sess.state.user_id,
-            chunk_id=sess.state.chunk_id,
-            board=board,
-            row=sess.state.pos.row,
-            col=sess.state.pos.col,
-            action="color"
-        ) 
-        
-        
+      
