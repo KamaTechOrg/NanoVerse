@@ -1,0 +1,42 @@
+
+from pathlib import Path
+import torch
+
+W = H = 64
+DTYPE = torch.uint8
+
+BIT_IS_DANGER_IDX = 7
+BIT_FRUIT_IDX = 5
+BIT_HAS_LINK_IDX = 6
+
+BIT_R0_IDX, BIT_G0_IDX, BIT_B0_IDX = 2, 1, 0 
+BIT_R1_IDX, BIT_G1_IDX, BIT_B1_IDX = 5, 4, 3
+
+COLOR_BITS = {
+    "r": (BIT_R0_IDX, BIT_R1_IDX),
+    "g": (BIT_G0_IDX, BIT_G1_IDX),   
+    "b": (BIT_B0_IDX, BIT_B1_IDX),
+}
+
+# Data paths
+DATA_DIR = Path("data")
+PLAYERS_DB_PATH = DATA_DIR / "players.db"
+SCROLLS_JSON_PATH = DATA_DIR / "message.json"
+HISTORY_JSON_PATH  = DATA_DIR / "history.json"
+USER_LOGS_DIR = DATA_DIR / "users"
+
+CHAT_DB_PATH = DATA_DIR / "chat.db"
+SCORES_DB_PATH = DATA_DIR /"scores.sqlite3"
+
+PLAYERS_NAME = DATA_DIR/ "players_name.db" 
+
+CMD_UP = "up"
+CMD_DOWN = "down"
+CMD_LEFT = "left"
+CMD_RIGHT = "right"
+
+CMD_COLOR_PLUS_PLUS = "c"
+CMD_SCROLL_WRITE = "m"  
+CMD_WHEREAMI = "whereami"
+
+CHAT_TYPES = {"select", "read", "typing", "react", "message", "delete"}

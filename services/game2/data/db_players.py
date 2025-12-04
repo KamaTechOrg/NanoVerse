@@ -1,0 +1,88 @@
+import sqlite3
+from typing import Optional, Tuple, List, Dict
+from pathlib import Path
+from ..core.settings import PLAYERS_DB_PATH
+
+class PlayerDB:
+    """
+    Player database:
+    - Stores user_id, chunk, row, col
+    - NEW: adapter_path for each user
+    """
+
+    def __init__(self, db_path: Path = PLAYERS_DB_PATH):
+        self.conn = sqlite3.connect(db_path, isolation_level=None)
+        self.conn.execute("PRAGMA journal_mode=WAL")
+
+        self.conn.execute("""
+        CREATE TABLE IF NOT EXISTS players (
+            user_id TEXT PRIMARY KEY,
+            chunk_id TEXT NOT NULL,
+            row INTEGER NOT NULL,
+            col INTEGER NOT NULL,
+            adapter_path TEXT
+        )
+        """)
+
+        self.conn.execute("CREATE INDEX IF NOT EXISTS idx_chunk ON players (chunk_id)")
+
+
+
+    def upsert(self, user_id: str, chunk_id: str, row: int, col: int) -> None:
+        """Insert or update player position."""
+        self.conn.execute("""
+        INSERT INTO players (user_id, chunk_id, row, col)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(user_id)
+        DO UPDATE SET chunk_id=excluded.chunk_id,
+                      row=excluded.row,
+                      col=excluded.col
+        """, (user_id, chunk_id, row, col))
+
+    def get_position(self, user_id: str) -> Optional[Tuple[str, int, int]]:
+        row = self.conn.execute(
+            "SELECT chunk_id, row, col FROM players WHERE user_id=?",
+            (user_id,),
+        ).fetchone()
+        return row if row else None
+
+    def remove_player(self, user_id: str) -> None:
+        self.conn.execute("DELETE FROM players WHERE user_id=?", (user_id,))
+
+    def list_players_in_chunk(self, chunk_id: str) -> List[Dict[str, int]]:
+        cur = self.conn.execute(
+            "SELECT user_id, row, col FROM players WHERE chunk_id=?",
+            (chunk_id,),
+        )
+        return cur.fetchall()
+
+    def clear_chunk(self, chunk_id: str) -> None:
+        self.conn.execute("DELETE FROM players WHERE chunk_id=?", (chunk_id,))
+
+    def is_cell_free(self, chunk_id: str, row: int, col: int) -> bool:
+        cur = self.conn.execute(
+            "SELECT 1 FROM players WHERE chunk_id=? AND row=? AND col=? LIMIT 1",
+            (chunk_id, row, col),
+        )
+        return cur.fetchone() is None
+
+    def close(self) -> None:
+        self.conn.close()
+
+
+
+    def set_adapter_path(self, user_id: str, path: str) -> None:
+        """Update adapter_path for a user."""
+        self.conn.execute("""
+            UPDATE players
+            SET adapter_path=?
+            WHERE user_id=?
+        """, (path, user_id))
+
+    def get_adapter_path(self, user_id: str) -> Optional[str]:
+        """Return adapter_path for a user."""
+        row = self.conn.execute(
+            "SELECT adapter_path FROM players WHERE user_id=?",
+            (user_id,),
+        ).fetchone()
+        return row[0] if row else None
