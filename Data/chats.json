@@ -1,0 +1,1615 @@
+{
+  "chats": [
+    {
+      "chat_id": "chat1",
+      "messages": [
+        {
+          "id": "2025-10-27T11:41:30.703Z|player1|שירה היקרה!",
+          "from": "player1",
+          "to": "player4",
+          "message": "שירה היקרה!",
+          "timestamp": "2025-10-27T11:41:30.703Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:41:34.166Z|player1|מה שלומך?",
+          "from": "player1",
+          "to": "player4",
+          "message": "מה שלומך?",
+          "timestamp": "2025-10-27T11:41:34.166Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:41:39.785Z|player4|מעולה ב\"ה",
+          "from": "player4",
+          "to": "player1",
+          "message": "מעולה ב\"ה",
+          "timestamp": "2025-10-27T11:41:39.785Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:41:41.947Z|player4|מה איתך?",
+          "from": "player4",
+          "to": "player1",
+          "message": "מה איתך?",
+          "timestamp": "2025-10-27T11:41:41.947Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:41:45.347Z|player4|איך בעבודה?",
+          "from": "player4",
+          "to": "player1",
+          "message": "איך בעבודה?",
+          "timestamp": "2025-10-27T11:41:45.347Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:41:55.226Z|player1|אני די בסדר",
+          "from": "player1",
+          "to": "player4",
+          "message": "אני די בסדר",
+          "timestamp": "2025-10-27T11:41:55.226Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:42:03.822Z|player1|לפעמים מעמיסים עלי קצת יותר מדי",
+          "from": "player1",
+          "to": "player4",
+          "message": "לפעמים מעמיסים עלי קצת יותר מדי",
+          "timestamp": "2025-10-27T11:42:03.822Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:42:10.726Z|player1|אבל באופן כללי נמרחים ביחד",
+          "from": "player1",
+          "to": "player4",
+          "message": "אבל באופן כללי נמרחים ביחד",
+          "timestamp": "2025-10-27T11:42:10.726Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:42:24.356Z|player4|דווקא לי היום די יש מה לעשות",
+          "from": "player4",
+          "to": "player1",
+          "message": "דווקא לי היום די יש מה לעשות",
+          "timestamp": "2025-10-27T11:42:24.356Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:42:29.632Z|player1|מגניבבב",
+          "from": "player1",
+          "to": "player4",
+          "message": "מגניבבב",
+          "timestamp": "2025-10-27T11:42:29.632Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:42:41.110Z|player4|😇",
+          "from": "player4",
+          "to": "player1",
+          "message": "😇",
+          "timestamp": "2025-10-27T11:42:41.110Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:42:51.981Z|player1|ומה אכלת היום בעבודה?",
+          "from": "player1",
+          "to": "player4",
+          "message": "ומה אכלת היום בעבודה?",
+          "timestamp": "2025-10-27T11:42:51.981Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:43:12.942Z|player4|אני בדיאטה🤭",
+          "from": "player4",
+          "to": "player1",
+          "message": "אני בדיאטה🤭",
+          "timestamp": "2025-10-27T11:43:12.942Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:43:25.524Z|player1|אכלת סלט?",
+          "from": "player1",
+          "to": "player4",
+          "message": "אכלת סלט?",
+          "timestamp": "2025-10-27T11:43:25.524Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:45:05.652Z|player4|מלפפון ועגבניה וחצי חתוכים",
+          "from": "player4",
+          "to": "player1",
+          "message": "מלפפון ועגבניה וחצי חתוכים",
+          "timestamp": "2025-10-27T11:45:05.652Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:45:10.339Z|player1|צחוקים",
+          "from": "player1",
+          "to": "player4",
+          "message": "צחוקים",
+          "timestamp": "2025-10-27T11:45:10.339Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:45:14.487Z|player4|עם מלא מלח",
+          "from": "player4",
+          "to": "player1",
+          "message": "עם מלא מלח",
+          "timestamp": "2025-10-27T11:45:14.487Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:45:16.628Z|player4|...",
+          "from": "player4",
+          "to": "player1",
+          "message": "...",
+          "timestamp": "2025-10-27T11:45:16.628Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:45:26.145Z|player4|וואי היה טעיםםםם",
+          "from": "player4",
+          "to": "player1",
+          "message": "וואי היה טעיםםםם",
+          "timestamp": "2025-10-27T11:45:26.145Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:45:38.941Z|player1|אני אכלתי סטיקים עם קטשופ",
+          "from": "player1",
+          "to": "player4",
+          "message": "אני אכלתי סטיקים עם קטשופ",
+          "timestamp": "2025-10-27T11:45:38.941Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:45:46.661Z|player1|לא באמת...",
+          "from": "player1",
+          "to": "player4",
+          "message": "לא באמת...",
+          "timestamp": "2025-10-27T11:45:46.661Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:45:56.751Z|player4|די",
+          "from": "player4",
+          "to": "player1",
+          "message": "די",
+          "timestamp": "2025-10-27T11:45:56.751Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:45:58.574Z|player4|שקרנית",
+          "from": "player4",
+          "to": "player1",
+          "message": "שקרנית",
+          "timestamp": "2025-10-27T11:45:58.574Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:46:10.987Z|player4|מה את לובשת היום לחתונה?",
+          "from": "player4",
+          "to": "player1",
+          "message": "מה את לובשת היום לחתונה?",
+          "timestamp": "2025-10-27T11:46:10.987Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:46:15.632Z|player1|תבגד ממלי",
+          "from": "player1",
+          "to": "player4",
+          "message": "תבגד ממלי",
+          "timestamp": "2025-10-27T11:46:15.632Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:46:17.790Z|player1|ומה את?",
+          "from": "player1",
+          "to": "player4",
+          "message": "ומה את?",
+          "timestamp": "2025-10-27T11:46:17.790Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:46:29.191Z|player4|לא יודעת, מה את אומרת?",
+          "from": "player4",
+          "to": "player1",
+          "message": "לא יודעת, מה את אומרת?",
+          "timestamp": "2025-10-27T11:46:29.191Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:46:33.586Z|player4|קיץ או חורף?",
+          "from": "player4",
+          "to": "player1",
+          "message": "קיץ או חורף?",
+          "timestamp": "2025-10-27T11:46:33.586Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:46:38.075Z|player1|שאלה טובה",
+          "from": "player1",
+          "to": "player4",
+          "message": "שאלה טובה",
+          "timestamp": "2025-10-27T11:46:38.075Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:46:41.767Z|player1|מה שיש לך בארון",
+          "from": "player1",
+          "to": "player4",
+          "message": "מה שיש לך בארון",
+          "timestamp": "2025-10-27T11:46:41.767Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:46:45.806Z|player1|הכל זורם טוב",
+          "from": "player1",
+          "to": "player4",
+          "message": "הכל זורם טוב",
+          "timestamp": "2025-10-27T11:46:45.806Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:46:52.484Z|player4|את שתיהם יש לי",
+          "from": "player4",
+          "to": "player1",
+          "message": "את שתיהם יש לי",
+          "timestamp": "2025-10-27T11:46:52.484Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:46:56.513Z|player1|אז חורף",
+          "from": "player1",
+          "to": "player4",
+          "message": "אז חורף",
+          "timestamp": "2025-10-27T11:46:56.513Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:47:02.625Z|player1|אם את רוצה להיות סט אלי",
+          "from": "player1",
+          "to": "player4",
+          "message": "אם את רוצה להיות סט אלי",
+          "timestamp": "2025-10-27T11:47:02.625Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:47:04.907Z|player1|בעונה...",
+          "from": "player1",
+          "to": "player4",
+          "message": "בעונה...",
+          "timestamp": "2025-10-27T11:47:04.907Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:52:36.142Z|player4|ראית מה שרה כתבה?",
+          "from": "player4",
+          "to": "player1",
+          "message": "ראית מה שרה כתבה?",
+          "timestamp": "2025-10-27T11:52:36.142Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:52:43.615Z|player1|כן",
+          "from": "player1",
+          "to": "player4",
+          "message": "כן",
+          "timestamp": "2025-10-27T11:52:43.615Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:52:50.147Z|player1|את מצליחה להרשם לזה?",
+          "from": "player1",
+          "to": "player4",
+          "message": "את מצליחה להרשם לזה?",
+          "timestamp": "2025-10-27T11:52:50.147Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:52:53.121Z|player4|לא",
+          "from": "player4",
+          "to": "player1",
+          "message": "לא",
+          "timestamp": "2025-10-27T11:52:53.121Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:52:56.457Z|player4|איון לי מושג",
+          "from": "player4",
+          "to": "player1",
+          "message": "איון לי מושג",
+          "timestamp": "2025-10-27T11:52:56.457Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:53:12.460Z|player4|אני לא יודעת איך קוראים למובד לימודים שלנו",
+          "from": "player4",
+          "to": "player1",
+          "message": "אני לא יודעת איך קוראים למובד לימודים שלנו",
+          "timestamp": "2025-10-27T11:53:12.460Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:53:16.700Z|player1|באסוש",
+          "from": "player1",
+          "to": "player4",
+          "message": "באסוש",
+          "timestamp": "2025-10-27T11:53:16.700Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:53:19.052Z|player1|אני גם לא",
+          "from": "player1",
+          "to": "player4",
+          "message": "אני גם לא",
+          "timestamp": "2025-10-27T11:53:19.052Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:53:21.977Z|player1|לא נורא",
+          "from": "player1",
+          "to": "player4",
+          "message": "לא נורא",
+          "timestamp": "2025-10-27T11:53:21.977Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:53:33.791Z|player4|אולי תשאלי במייל?",
+          "from": "player4",
+          "to": "player1",
+          "message": "אולי תשאלי במייל?",
+          "timestamp": "2025-10-27T11:53:33.791Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:53:39.382Z|player1|מזה לא בא לי",
+          "from": "player1",
+          "to": "player4",
+          "message": "מזה לא בא לי",
+          "timestamp": "2025-10-27T11:53:39.382Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:53:41.822Z|player1|אולי את?1",
+          "from": "player1",
+          "to": "player4",
+          "message": "אולי את?1",
+          "timestamp": "2025-10-27T11:53:41.822Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:54:00.703Z|player1|יש לכם אביזרים לחתונה מחר?",
+          "from": "player1",
+          "to": "player4",
+          "message": "יש לכם אביזרים לחתונה מחר?",
+          "timestamp": "2025-10-27T11:54:00.703Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:56:13.742Z|player4|שלחתי בואי נראה מה היא תענה",
+          "from": "player4",
+          "to": "player1",
+          "message": "שלחתי בואי נראה מה היא תענה",
+          "timestamp": "2025-10-27T11:56:13.742Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:56:40.987Z|player4|נראה לי אנחנו לוקחות ממכם לא?",
+          "from": "player4",
+          "to": "player1",
+          "message": "נראה לי אנחנו לוקחות ממכם לא?",
+          "timestamp": "2025-10-27T11:56:40.987Z",
+          "quoted_id": "2025-10-27T11:54:00.703Z|player1|יש לכם אביזרים לחתונה מחר?",
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:56:50.357Z|player1|אה, נכון!",
+          "from": "player1",
+          "to": "player4",
+          "message": "אה, נכון!",
+          "timestamp": "2025-10-27T11:56:50.357Z",
+          "quoted_id": "2025-10-27T11:56:40.987Z|player4|נראה לי אנחנו לוקחות ממכם לא?",
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:56:53.325Z|player1|שכחתי",
+          "from": "player1",
+          "to": "player4",
+          "message": "שכחתי",
+          "timestamp": "2025-10-27T11:56:53.325Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:57:07.796Z|player4|לקחתם את זה כבר?",
+          "from": "player4",
+          "to": "player1",
+          "message": "",
+          "timestamp": "2025-10-27T11:57:07.796Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": true,
+          "origin": null,
+          "model": null,
+          "updated_at": "2025-10-27T11:57:28.747942Z"
+        },
+        {
+          "id": "2025-10-27T11:57:34.196Z|player4|אתם כבר לקחתם?",
+          "from": "player4",
+          "to": "player1",
+          "message": "אתם כבר לקחתם?",
+          "timestamp": "2025-10-27T11:57:34.196Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:57:47.736Z|player1|לא, ניקח את זה לפני החתונה וניסע משם במונית",
+          "from": "player1",
+          "to": "player4",
+          "message": "לא, ניקח את זה לפני החתונה וניסע משם במונית",
+          "timestamp": "2025-10-27T11:57:47.736Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:58:14.930Z|player1|אגב, יותר יפה לשאות \" לקחתם את זה כבר\" כי מדובר על אותם אביזרים, מבינה?",
+          "from": "player1",
+          "to": "player4",
+          "message": "אגב, יותר יפה לשאות \" לקחתם את זה כבר\" כי מדובר על אותם אביזרים, מבינה?",
+          "timestamp": "2025-10-27T11:58:14.930Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:58:35.783Z|player1|אמרתי לך שהתופאת נתנה לי 30ש ח ללוין",
+          "from": "player1",
+          "to": "player4",
+          "message": "אמרתי לך שהתופאת נתנה לי 30ש ח ללוין",
+          "timestamp": "2025-10-27T11:58:35.783Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:58:44.792Z|player4|כן",
+          "from": "player4",
+          "to": "player1",
+          "message": "כן",
+          "timestamp": "2025-10-27T11:58:44.792Z",
+          "quoted_id": "2025-10-27T11:58:35.783Z|player1|אמרתי לך שהתופאת נתנה לי 30ש ח ללוין",
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:58:50.903Z|player1|כל הכבוד לה",
+          "from": "player1",
+          "to": "player4",
+          "message": "כל הכבוד לה",
+          "timestamp": "2025-10-27T11:58:50.903Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:58:58.198Z|player1|אני פשוט רואה את זה כאן לידי",
+          "from": "player1",
+          "to": "player4",
+          "message": "אני פשוט רואה את זה כאן לידי",
+          "timestamp": "2025-10-27T11:58:58.198Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:59:02.525Z|player1|לכן נזכרתי בזה...",
+          "from": "player1",
+          "to": "player4",
+          "message": "לכן נזכרתי בזה...",
+          "timestamp": "2025-10-27T11:59:02.525Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:59:09.824Z|player4|אבל באמת כל הכבוד",
+          "from": "player4",
+          "to": "player1",
+          "message": "אבל באמת כל הכבוד",
+          "timestamp": "2025-10-27T11:59:09.824Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T11:59:18.050Z|player4|יראת שמים",
+          "from": "player4",
+          "to": "player1",
+          "message": "יראת שמים",
+          "timestamp": "2025-10-27T11:59:18.050Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4",
+            "player1"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T12:09:44.787682Z|player4|אז, לגבי האביזרים... ניקח אותם לפני החתונה ונסעו במונית. תתכונני למונית, אוקיי?",
+          "from": "player4",
+          "to": "player1",
+          "message": "אז, לגבי האביזרים... ניקח אותם לפני החתונה ונסעו במונית. תתכונני למונית, אוקיי?",
+          "timestamp": "2025-10-27T12:09:44.787682Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1"
+          ],
+          "deleted": false,
+          "origin": "bot",
+          "model": "gemma3n-stub"
+        },
+        {
+          "id": "2025-10-27T12:10:56.145361Z|player4|בטח! ניקח אותם לפני החתונה, וזה יחסוך לנו זמן יקר. אני אבדוק את הלו\"ז של המונית כדי לוודא שהיא תהיה זמינה בזמן. תודה על התזכורת!",
+          "from": "player4",
+          "to": "player1",
+          "message": "בטח! ניקח אותם לפני החתונה, וזה יחסוך לנו זמן יקר. אני אבדוק את הלו\"ז של המונית כדי לוודא שהיא תהיה זמינה בזמן. תודה על התזכורת!",
+          "timestamp": "2025-10-27T12:10:56.145361Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1"
+          ],
+          "deleted": false,
+          "origin": "bot",
+          "model": "gemma3n-stub"
+        },
+        {
+          "id": "2025-10-27T12:11:31.627047Z|player4|אוקיי, מצוין. אז, מה את מתכננת לעשות אחרי החתונה? סתם לשאול...",
+          "from": "player4",
+          "to": "player1",
+          "message": "אוקיי, מצוין. אז, מה את מתכננת לעשות אחרי החתונה? סתם לשאול...",
+          "timestamp": "2025-10-27T12:11:31.627047Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1"
+          ],
+          "deleted": false,
+          "origin": "bot",
+          "model": "gemma3n-stub"
+        },
+        {
+          "id": "2025-10-27T12:37:09.645Z|player1|לא התערבתי כמובן!",
+          "from": "player1",
+          "to": "player4",
+          "message": "לא התערבתי כמובן!",
+          "timestamp": "2025-10-27T12:37:09.645Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T12:37:11.894Z|player1|ברור!",
+          "from": "player1",
+          "to": "player4",
+          "message": "ברור!",
+          "timestamp": "2025-10-27T12:37:11.894Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T12:37:16.359Z|player1|את לגמרי צודקת!",
+          "from": "player1",
+          "to": "player4",
+          "message": "את לגמרי צודקת!",
+          "timestamp": "2025-10-27T12:37:16.359Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-10-27T12:38:09.950197Z|player1|אני... אני אתארגן את כל הציוד. ואולי אעשה קצת קניות.\nאת?",
+          "from": "player1",
+          "to": "player4",
+          "message": "אני... אני אתארגן את כל הציוד. ואולי אעשה קצת קניות.\nאת?",
+          "timestamp": "2025-10-27T12:38:09.950197Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4"
+          ],
+          "deleted": false,
+          "origin": "bot",
+          "model": "gemma3n-stub"
+        },
+        {
+          "id": "2025-10-27T12:38:26.638765Z|player4|אני אשמח לעזור לך עם הארגון. ואולי גם אעשה קצת קניות.\nאבל קודם כל, אני צריכה לנוח קצת אחרי החתונה.",
+          "from": "player4",
+          "to": "player1",
+          "message": "אני אשמח לעזור לך עם הארגון. ואולי גם אעשה קצת קניות.\nאבל קודם כל, אני צריכה לנוח קצת אחרי החתונה.",
+          "timestamp": "2025-10-27T12:38:26.638765Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1"
+          ],
+          "deleted": false,
+          "origin": "bot",
+          "model": "gemma3n-stub"
+        },
+        {
+          "id": "2025-10-27T12:38:41.321346Z|player1|הייתי צודקת!\nאני מבינה לגמרי.\nתנוחי כמו שצריך!",
+          "from": "player1",
+          "to": "player4",
+          "message": "הייתי צודקת!\nאני מבינה לגמרי.\nתנוחי כמו שצריך!",
+          "timestamp": "2025-10-27T12:38:41.321346Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4"
+          ],
+          "deleted": false,
+          "origin": "bot",
+          "model": "gemma3n-stub"
+        },
+        {
+          "id": "2025-10-27T12:38:52.524028Z|player4|תודה!",
+          "from": "player4",
+          "to": "player1",
+          "message": "תודה!",
+          "timestamp": "2025-10-27T12:38:52.524028Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1"
+          ],
+          "deleted": false,
+          "origin": "bot",
+          "model": "gemma3n-stub"
+        },
+        {
+          "id": "2025-10-27T12:38:59.000139Z|player4|אוקיי... מה קורה אצלך?",
+          "from": "player4",
+          "to": "player1",
+          "message": "אוקיי... מה קורה אצלך?",
+          "timestamp": "2025-10-27T12:38:59.000139Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1"
+          ],
+          "deleted": false,
+          "origin": "bot",
+          "model": "gemma3n-stub"
+        },
+        {
+          "id": "2025-10-27T12:39:04.640014Z|player4|הכל טוב. פשוט... קצת עמוס. מנסה להירגע. מה איתך?",
+          "from": "player4",
+          "to": "player1",
+          "message": "הכל טוב. פשוט... קצת עמוס. מנסה להירגע. מה איתך?",
+          "timestamp": "2025-10-27T12:39:04.640014Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1"
+          ],
+          "deleted": false,
+          "origin": "bot",
+          "model": "gemma3n-stub"
+        },
+        {
+          "id": "2025-10-27T12:59:18.313313Z|player1|גם אני!\nאני מנסה להירגע...\nאני מצאתי קטע מוזיקה שמרגיע אותי.\nאת אוהבת מוזיקה?",
+          "from": "player1",
+          "to": "player4",
+          "message": "גם אני!\nאני מנסה להירגע...\nאני מצאתי קטע מוזיקה שמרגיע אותי.\nאת אוהבת מוזיקה?",
+          "timestamp": "2025-10-27T12:59:18.313313Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4"
+          ],
+          "deleted": false,
+          "origin": "bot",
+          "model": "gemma3n-stub"
+        },
+        {
+          "id": "2025-11-02T09:43:26.610Z|player1|מה קורה?",
+          "from": "player1",
+          "to": "player4",
+          "message": "מה קורה?",
+          "timestamp": "2025-11-02T09:43:26.610Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-11-02T09:43:30.029Z|player1|איך הולך?",
+          "from": "player1",
+          "to": "player4",
+          "message": "איך הולך?",
+          "timestamp": "2025-11-02T09:43:30.029Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-11-02T09:43:35.257Z|player1|ככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככככ",
+          "from": "player1",
+          "to": "player4",
+          "message": "",
+          "timestamp": "2025-11-02T09:43:35.257Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": true,
+          "origin": null,
+          "model": null,
+          "updated_at": "2025-11-02T09:43:50.939781Z"
+        },
+        {
+          "id": "2025-11-02T09:44:03.064Z|player1|מה קורה מה נשמע איך הולך מה איתך ?",
+          "from": "player1",
+          "to": "player4",
+          "message": "מה קורה מה נשמע איך הולך מה איתך ?",
+          "timestamp": "2025-11-02T09:44:03.064Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-11-02T09:44:19.201Z|player1|גגגגגגגגגגגגגגגגגגגגגגגגגייייי מה קורה?מה איתך מה נשמע שירה המדהימה",
+          "from": "player1",
+          "to": "player4",
+          "message": "",
+          "timestamp": "2025-11-02T09:44:19.201Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": true,
+          "origin": null,
+          "model": null,
+          "updated_at": "2025-11-02T09:44:26.406992Z"
+        },
+        {
+          "id": "2025-11-02T09:44:59.346780Z|player1|אני פשוט סומכת על עצמי קצת.\nאבל תודה ששאלת.\nאני צריכה קצת זמן להתרענן.\nתחכה לי.\nאני אשמח לשמוע!",
+          "from": "player1",
+          "to": "player4",
+          "message": "אני פשוט סומכת על עצמי קצת.\nאבל תודה ששאלת.\nאני צריכה קצת זמן להתרענן.\nתחכה לי.\nאני אשמח לשמוע!",
+          "timestamp": "2025-11-02T09:44:59.346780Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4"
+          ],
+          "deleted": false,
+          "origin": "bot",
+          "model": "gemma3n-stub"
+        },
+        {
+          "id": "2025-11-02T09:45:28.607401Z|player4|אני מבינה. תודה על ההודאה. אני גם מנסה להירגע, אבל קשה. תרגישי בטוח. אני אשמח לשמוע ממך, ואני אעשה את מה שצריך. תודה ששאלת.",
+          "from": "player4",
+          "to": "player1",
+          "message": "אני מבינה. תודה על ההודאה. אני גם מנסה להירגע, אבל קשה. תרגישי בטוח. אני אשמח לשמוע ממך, ואני אעשה את מה שצריך. תודה ששאלת.",
+          "timestamp": "2025-11-02T09:45:28.607401Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1"
+          ],
+          "deleted": false,
+          "origin": "bot",
+          "model": "gemma3n-stub"
+        },
+        {
+          "id": "2025-11-02T09:45:49.240Z|player1|מה אתה אוכל היום? תן לי רעיון לארוחת בוקר",
+          "from": "player1",
+          "to": "player4",
+          "message": "מה אתה אוכל היום? תן לי רעיון לארוחת בוקר",
+          "timestamp": "2025-11-02T09:45:49.240Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-11-02T09:45:57.158Z|player1|אבל לא סנדוויץ...",
+          "from": "player1",
+          "to": "player4",
+          "message": "אבל לא סנדוויץ...",
+          "timestamp": "2025-11-02T09:45:57.158Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-11-02T09:46:18.059869Z|player4|אוקיי, בוקר טוב! נשמע קצת מתיש.\n\nאני חושבת שאני אעשה קצת קפה טרופי, עם קצת פירות וקצנטר. או, אם אתה אוהב משהו יותר מנחם, אפשר קצת סלט ירקות עם אבוקדו.\n\nמה אתה חושב?",
+          "from": "player4",
+          "to": "player1",
+          "message": "אוקיי, בוקר טוב! נשמע קצת מתיש.\n\nאני חושבת שאני אעשה קצת קפה טרופי, עם קצת פירות וקצנטר. או, אם אתה אוהב משהו יותר מנחם, אפשר קצת סלט ירקות עם אבוקדו.\n\nמה אתה חושב?",
+          "timestamp": "2025-11-02T09:46:18.059869Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1"
+          ],
+          "deleted": false,
+          "origin": "bot",
+          "model": "gemma3n-stub"
+        },
+        {
+          "id": "2025-11-02T09:46:45.726324Z|player1|אבוקדו זה נהדר!\nהאבוקדו זה נחמד, נשמע טוב!\nאני בטוחה שזה יהיה נפלא!",
+          "from": "player1",
+          "to": "player4",
+          "message": "אבוקדו זה נהדר!\nהאבוקדו זה נחמד, נשמע טוב!\nאני בטוחה שזה יהיה נפלא!",
+          "timestamp": "2025-11-02T09:46:45.726324Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player4"
+          ],
+          "deleted": false,
+          "origin": "bot",
+          "model": "gemma3n-stub"
+        },
+        {
+          "id": "2025-11-02T09:47:00.546Z|player1|ומה עם שקשוקה?",
+          "from": "player1",
+          "to": "player4",
+          "message": "ומה עם שקשוקה?",
+          "timestamp": "2025-11-02T09:47:00.546Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-11-02T09:47:03.676Z|player1|מה אתה אומר?",
+          "from": "player1",
+          "to": "player4",
+          "message": "מה אתה אומר?",
+          "timestamp": "2025-11-02T09:47:03.676Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-11-02T09:47:10.072Z|player1|יש לך מתכון טוב לשקשוקה?",
+          "from": "player1",
+          "to": "player4",
+          "message": "יש לך מתכון טוב לשקשוקה?",
+          "timestamp": "2025-11-02T09:47:10.072Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-11-02T09:47:30.182380Z|player4|שקשוקה? זה תמיד טוב! אני חושבת שזה יהיה נפלא!\n\nאני חושבת שאני אעשה קצת קפה, ואז אעשה קצת סוכר על הפינה. אפשר גם להוסיף קצת פירות יער.\n\nאתה יודעת, אני מרגישה קצת יותר נחמדה אחרי קצת קפה וסוכר!\nאז, תגידי מה אתה חושב?",
+          "from": "player4",
+          "to": "player1",
+          "message": "שקשוקה? זה תמיד טוב! אני חושבת שזה יהיה נפלא!\n\nאני חושבת שאני אעשה קצת קפה, ואז אעשה קצת סוכר על הפינה. אפשר גם להוסיף קצת פירות יער.\n\nאתה יודעת, אני מרגישה קצת יותר נחמדה אחרי קצת קפה וסוכר!\nאז, תגידי מה אתה חושב?",
+          "timestamp": "2025-11-02T09:47:30.182380Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1"
+          ],
+          "deleted": false,
+          "origin": "bot",
+          "model": "gemma3n-stub"
+        },
+        {
+          "id": "2025-11-02T09:48:13.896Z|player1|יייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייי",
+          "from": "player1",
+          "to": "player4",
+          "message": "",
+          "timestamp": "2025-11-02T09:48:13.896Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": true,
+          "origin": null,
+          "model": null,
+          "updated_at": "2025-11-02T09:48:18.795196Z"
+        },
+        {
+          "id": "2025-11-02T10:11:51.991Z|player1|ייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייייי",
+          "from": "player1",
+          "to": "player4",
+          "message": "",
+          "timestamp": "2025-11-02T10:11:51.991Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": true,
+          "origin": null,
+          "model": null,
+          "updated_at": "2025-11-02T10:12:22.404981Z"
+        },
+        {
+          "id": "2025-11-02T10:33:18.426Z|player1|מה קורה?\nמה נשמע?\nאיך הולך?\nשירה שירה שירה שירה שירה שירה",
+          "from": "player1",
+          "to": "player4",
+          "message": "מה קורה?\nמה נשמע?\nאיך הולך?\nשירה שירה שירה שירה שירה שירה",
+          "timestamp": "2025-11-02T10:33:18.426Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-11-02T10:33:35.674Z|player1|לללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללל",
+          "from": "player1",
+          "to": "player4",
+          "message": "לללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללללל",
+          "timestamp": "2025-11-02T10:33:35.674Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-11-02T10:41:10.458Z|player1|שירה שירה שירהשירה שירה שירה שירה שירה",
+          "from": "player1",
+          "to": "player4",
+          "message": "שירה שירה שירהשירה שירה שירה שירה שירה",
+          "timestamp": "2025-11-02T10:41:10.458Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-11-02T10:41:20.560Z|player1|מה קורה מה איתך מה נשמע\nאיך הולך\n\nעעע",
+          "from": "player1",
+          "to": "player4",
+          "message": "מה קורה מה איתך מה נשמע\nאיך הולך\n\nעעע",
+          "timestamp": "2025-11-02T10:41:20.560Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-11-02T10:41:26.985Z|player1|עעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעע",
+          "from": "player1",
+          "to": "player4",
+          "message": "עעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעעע",
+          "timestamp": "2025-11-02T10:41:26.985Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-11-02T10:56:29.362Z|player1|הכל עובד!\nנננ\nככככ\nייי",
+          "from": "player1",
+          "to": "player4",
+          "message": "הכל עובד!\nנננ\nככככ\nייי",
+          "timestamp": "2025-11-02T10:56:29.362Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-11-02T10:56:41.219Z|player1|חחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחח",
+          "from": "player1",
+          "to": "player4",
+          "message": "חחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחחח",
+          "timestamp": "2025-11-02T10:56:41.219Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        },
+        {
+          "id": "2025-11-02T10:56:44.332Z|player1|שולח!",
+          "from": "player1",
+          "to": "player4",
+          "message": "שולח!",
+          "timestamp": "2025-11-02T10:56:44.332Z",
+          "quoted_id": null,
+          "reactions": {},
+          "read_by": [
+            "player1",
+            "player4"
+          ],
+          "deleted": false,
+          "origin": null,
+          "model": null
+        }
+      ]
+    }
+  ]
+}

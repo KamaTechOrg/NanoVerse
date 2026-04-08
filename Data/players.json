@@ -1,0 +1,9 @@
+
+{
+  "players": [
+    { "id": "player1", "name": "Dudi",  "status": "online", "level": 1 },
+    { "id": "player2", "name": "Roi", "status": "online", "level": 1 },
+    { "id": "player3", "name": "David",    "status": "online", "level": 1 },
+    { "id": "player4", "name": "Zalman",   "status": "online", "level": 1 }
+  ]
+}
